@@ -1,0 +1,74 @@
+# ==============================================================================
+# SISTEMA SILMAY - Reglas de Exclusión de Git (.gitignore)
+# Basado en docs/setup-environment.md y docs/playbook/04-ai-guardrails.md
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Secretos, Credenciales y Entorno (POLÍTICA: CERO SECRETOS EN GIT)
+# ------------------------------------------------------------------------------
+*.env
+*.env.local
+*.env.development
+*.env.production
+*.env*.local
+
+# Firebase & Google Cloud Service Accounts
+google-services.json
+firebase-adminsdk-*.json
+service-account-key.json
+*-adminsdk-*.json
+
+# ------------------------------------------------------------------------------
+# 2. Subproyecto Android (Kotlin / Gradle)
+# ------------------------------------------------------------------------------
+.gradle/
+build/
+*/build/
+app/build/
+
+# Configuración local de SDK y claves de firmado
+local.properties
+*.keystore
+*.jks
+
+# Artefactos empaquetados
+*.apk
+*.aab
+
+# Android Studio / IntelliJ IDEA
+.idea/
+*.iml
+.navigation/
+captures/
+
+# ------------------------------------------------------------------------------
+# 3. Subproyecto Web (React / Vite) y Firebase Functions (Node.js)
+# ------------------------------------------------------------------------------
+node_modules/
+*/node_modules/
+dist/
+*/dist/
+
+# Logs y depuración
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Firebase CLI y Emuladores
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+functions-debug.log*
+
+# ------------------------------------------------------------------------------
+# 4. Sistema Operativo y Editores
+# ------------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+*.bak
+*.swp
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
