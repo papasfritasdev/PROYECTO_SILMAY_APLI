@@ -5,4 +5,5 @@ if (!admin.apps.length) {
   admin.initializeApp();
 }
 
-// En el Paso 9 exportaremos aquí la función callable gestionarUsuario
+// Exportación de microservicios serverless (HT-04)
+export { gestionarUsuario } from "./gestionarUsuario";
