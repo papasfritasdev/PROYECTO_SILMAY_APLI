@@ -1,0 +1,7 @@
+{
+  "projects": {
+    "default": "silmay-dev",
+    "dev": "silmay-dev",
+    "prod": "silmay-prod"
+  }
+}
