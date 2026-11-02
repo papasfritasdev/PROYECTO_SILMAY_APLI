@@ -1,0 +1,31 @@
+{
+  "name": "silmay-functions",
+  "version": "1.0.0",
+  "description": "Backend Serverless y Cloud Functions para Sistema SILMAY",
+  "main": "lib/index.js",
+  "scripts": {
+    "lint": "tsc --noEmit",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log",
+    "test": "vitest run --passWithNoTests"
+  },
+  "engines": {
+    "node": "20"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^5.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "firebase-functions-test": "^3.3.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  },
+  "private": true
+}
