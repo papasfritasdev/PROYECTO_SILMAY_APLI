@@ -101,9 +101,10 @@ export const procesarJornada = functions.region('southamerica-east1').firestore
 | :--- | :--- | :--- |
 | `unauthenticated` / `permission-denied` | Sin sesión o rol distinto de `admin` | `MSG-13` |
 | `already-exists` + `details.campo` (`'email'` \| `'cedula'`) | Correo o cédula ya registrados en `usuarios` | `MSG-17` |
-| `invalid-argument` | Payload inválido | Validación de formulario en cliente (los textos del servidor son técnicos) |
-| `failed-precondition` | El admin intenta darse de baja o retirarse su propio rol | Pendiente de mensaje en catálogo |
-| `not-found` | `uid` inexistente al actualizar | — |
+| `invalid-argument` | Payload inválido | No debería ocurrir: el cliente valida con las mismas reglas (`web/src/domain/validation`). Si ocurre → `MSG-18` |
+| `failed-precondition` | El admin intenta darse de baja o retirarse su propio rol | No se dispara: la UI deshabilita esas acciones sobre la propia cuenta |
+| `not-found` | `uid` inexistente al actualizar | `MSG-18` |
+| `internal` / `unavailable` / red | Fallo inesperado | `MSG-18` |
 
 ---
 
