@@ -4,6 +4,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.PersistentCacheSettings
 import ec.silmay.app.BuildConfig
+import kotlinx.coroutines.tasks.await
 
 /**
  * Proveedor y configurador centralizado de Cloud Firestore para Android (M4 / HT-06).
@@ -33,5 +34,13 @@ object FirestoreProvider {
         }
 
         return firestore
+    }
+
+    suspend fun desactivarRed(firestore: FirebaseFirestore) {
+        firestore.disableNetwork().await()
+    }
+
+    suspend fun activarRed(firestore: FirebaseFirestore) {
+        firestore.enableNetwork().await()
     }
 }
