@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">SILMAY</string>
+
+    <!-- Catálogo Oficial de Mensajes del Sistema SILMAY (docs/messages-catalog.md) -->
+    <string name="msg_01">Credenciales no válidas. Revise su usuario o contraseña.</string>
+    <string name="msg_02">Se requiere conexión a Internet para el registro inicial de su cuenta en este dispositivo.</string>
+    <string name="msg_03">Cuenta deshabilitada. Contacte con la administración de SILMAY.</string>
+    <string name="msg_04">Memoria insuficiente en el dispositivo para guardar el registro.</string>
+    <string name="msg_05">El horómetro final no puede ser menor al horómetro inicial. Por favor verifique el tablero de la máquina.</string>
+    <string name="msg_06">La descripción de la novedad debe tener al menos 10 caracteres.</string>
+    <string name="msg_07">Ingrese un valor monetario válido.</string>
+    <string name="msg_08">No se encontraron despachos ni movimientos operativos registrados en el período seleccionado.</string>
+    <string name="msg_09">Ya existe una unidad de maquinaria registrada con ese código/placa.</string>
+    <string name="msg_10">No existen movimientos que coincidan con los filtros seleccionados.</string>
+    <string name="msg_11">La hora de salida debe ser posterior a la hora de inicio de la jornada.</string>
+    <string name="msg_12">Las horas restadas no pueden superar la duración de la jornada.</string>
+    <string name="msg_13">Esta plataforma no está habilitada para su rol.</string>
+    <string name="msg_14">Tiene una jornada abierta. Finalícela antes de iniciar otra.</string>
+    <string name="msg_15">Registre un comentario para marcar el registro como Observado.</string>
+    <string name="msg_16">Ya existe un registro con ese valor en el catálogo.</string>
+</resources>
