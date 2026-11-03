@@ -10,6 +10,10 @@ enum class Rol(val valor: String) {
     CONTADOR("contador"),
     ADMIN("admin");
 
+    /** RBAC móvil (HU-01a CA4): solo los roles de campo operan la app Android. */
+    val habilitadoEnMovil: Boolean
+        get() = this == OPERADOR || this == SUPERVISOR
+
     companion object {
         fun desdeValor(valor: String?): Rol? =
             entries.find { it.valor.equals(valor?.trim(), ignoreCase = true) }

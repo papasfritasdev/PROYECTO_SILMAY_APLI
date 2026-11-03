@@ -11,7 +11,9 @@ import ec.silmay.app.BuildConfig
 import ec.silmay.app.data.firestore.FirestoreProvider
 import ec.silmay.app.data.repository.AuthRepositoryImpl
 import ec.silmay.app.domain.repository.AuthRepository
+import ec.silmay.app.domain.usecase.CerrarSesionUseCase
 import ec.silmay.app.domain.usecase.IniciarSesionUseCase
+import ec.silmay.app.domain.usecase.ObtenerSesionActualUseCase
 import javax.inject.Singleton
 
 @Module
@@ -46,6 +48,18 @@ object AppModule {
     @Singleton
     fun provideIniciarSesionUseCase(authRepository: AuthRepository): IniciarSesionUseCase {
         return IniciarSesionUseCase(authRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideObtenerSesionActualUseCase(authRepository: AuthRepository): ObtenerSesionActualUseCase {
+        return ObtenerSesionActualUseCase(authRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCerrarSesionUseCase(authRepository: AuthRepository): CerrarSesionUseCase {
+        return CerrarSesionUseCase(authRepository)
     }
 }
 

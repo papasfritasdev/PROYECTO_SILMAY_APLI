@@ -2,7 +2,6 @@ package ec.silmay.app.domain.usecase
 
 import ec.silmay.app.domain.model.AppMessage
 import ec.silmay.app.domain.model.AppResult
-import ec.silmay.app.domain.model.Rol
 import ec.silmay.app.domain.model.UsuarioSesion
 import ec.silmay.app.domain.repository.AuthRepository
 
@@ -39,7 +38,7 @@ class IniciarSesionUseCase(
 
             // CA4: Restricción de plataforma por rol (RBAC Móvil)
             // Solo 'operador' y 'supervisor' están autorizados en móvil.
-            if (sesion.rol != Rol.OPERADOR && sesion.rol != Rol.SUPERVISOR) {
+            if (!sesion.rol.habilitadoEnMovil) {
                 authRepository.cerrarSesion()
                 return AppResult.Error(AppMessage.MSG_13)
             }
