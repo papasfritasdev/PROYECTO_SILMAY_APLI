@@ -12,7 +12,7 @@ Para dar por finalizada cualquier Historia de Usuario (HU) o Historia Técnica (
 2. **Cobertura de Pruebas Unitarias ≥ 70%:** La capa de dominio debe mantener una cobertura mínima del 70% verificada mediante Kover (Android) y Vitest (Web) en el pipeline de CI.
 3. **Independencia de Frameworks (Clean Architecture):** La capa de Dominio no debe importar dependencias de Android SDK, Jetpack Compose, React ni Firebase SDK (RNF-14).
 4. **Idempotencia y Persistencia en Borde:** Toda mutación de datos operativos debe generar su ID = UUID v4 en el cliente y persistirse mediante `set()` en la caché de Firestore. Las Security Rules asociadas deben validarse en el emulador local.
-5. **Mensajes Normalizados:** Toda alerta o notificación al usuario debe coincidir exactamente con el catálogo oficial `docs/messages-catalog.md` (`MSG-01` a `MSG-16`).
+5. **Mensajes Normalizados:** Toda alerta o notificación al usuario debe coincidir exactamente con el catálogo oficial `docs/messages-catalog.md` (`MSG-01` a `MSG-17`).
 6. **Seguridad del Repositorio:** Cero credenciales, tokens o archivos `.env` versionados en Git. `AndroidManifest.xml` debe declarar obligatoriamente `android:allowBackup="false"`.
 
 ---
