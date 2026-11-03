@@ -72,6 +72,20 @@ VITE_FIREBASE_APP_ID=tu_app_id
 VITE_USE_FIREBASE_EMULATORS=true
 ```
 
+**Modo emulador (Sprint 2, decisión del equipo):** sin archivos `.env`, la web usa valores de demostración
+(`projectId: silmay-dev`) y se conecta automáticamente a los emuladores en `npm run dev`
+(Auth `127.0.0.1:9099`, Firestore `127.0.0.1:8080`, Functions `127.0.0.1:5001`).
+No versionar ningún archivo `.env*`: el CI rechaza cualquier ruta que contenga `.env`.
+
+```bash
+cd web
+npm install
+npm run dev               # http://localhost:5173 (requiere emuladores levantados)
+npm test                  # pruebas unitarias y de componentes
+npm run coverage          # cobertura del dominio (umbral 70%)
+npm run test:integration  # repositorio real + Security Rules en emuladores (puertos libres)
+```
+
 ---
 
 ## 4. Política de Secretos y Archivos Ignorados (`.gitignore`)
