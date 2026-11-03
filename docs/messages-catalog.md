@@ -25,6 +25,7 @@ Este catálogo define los textos literales que deben desplegarse en pantalla ant
 | **MSG-15** | `Registre un comentario para marcar el registro como Observado.` | Intento de guardar una observación financiera en contabilidad sin redactar justificación. | M5 (RF-24 / CU-09) |
 | **MSG-16** | `Ya existe un registro con ese valor en el catálogo.` | Duplicidad de nombre al agregar un nuevo ítem en `catalogos/{tipo}/items`. | M8 (RF-32 / CU-13) |
 | **MSG-17** | `Ya existe un usuario registrado con ese correo o cédula.` | Duplicidad de `email` o `cedula` al crear o actualizar una cuenta en `usuarios` (`gestionarUsuario` responde `already-exists`). Agregado en Sprint 2 por acuerdo del equipo (HU-02 CA2). | M7 (RF-05 / CU-11) |
+| **MSG-18** | `No se pudo completar la operación. Intente nuevamente.` | Fallo inesperado del servidor o de red al guardar o autenticar (p. ej. `internal`, `unavailable`, `auth/network-request-failed` en web). Agregado en Sprint 2 por acuerdo del equipo. | M5–M8 (Web) |
 
 ---
 

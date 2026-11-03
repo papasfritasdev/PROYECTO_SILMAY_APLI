@@ -61,7 +61,7 @@ Antes de solicitar la aprobación del compañero:
 - [ ] **Compilación Limpia:** El subproyecto afectado (`android`, `web` o `functions`) compila localmente con cero errores.
 - [ ] **Cobertura ≥70% en Dominio:** La suite de pruebas unitarias pasa al 100% y supera el umbral de cobertura exigido en el DoD (RNF-14).
 - [ ] **Clean Architecture Respetada:** Se verificó manualmente que la capa `domain` no importe dependencias de Android, Compose, React o Firebase SDK.
-- [ ] **Mensajes Canónicos:** Toda alerta visual en la UI utiliza los textos de `docs/messages-catalog.md` (MSG-01 a MSG-17).
+- [ ] **Mensajes Canónicos:** Toda alerta visual en la UI utiliza los textos de `docs/messages-catalog.md` (MSG-01 a MSG-18).
 - [ ] **Cero Secretos:** No se incluyen claves de servicio, archivos `.env` privados ni `google-services.json` de producción.
 - [ ] **Revisión del Diff Humano:** El desarrollador autor del PR comprende cada línea generada por la IA y es capaz de explicarla técnicamente.
 

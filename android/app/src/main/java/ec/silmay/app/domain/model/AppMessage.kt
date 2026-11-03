@@ -2,7 +2,7 @@ package ec.silmay.app.domain.model
 
 /**
  * Catálogo Oficial de Mensajes del Sistema SILMAY (UI y Validaciones).
- * Correspondencia exacta con docs/messages-catalog.md (MSG-01 a MSG-17).
+ * Correspondencia exacta con docs/messages-catalog.md (MSG-01 a MSG-18).
  * Puro Kotlin (Cero dependencias de Android SDK / UI).
  */
 enum class AppMessage(val codigo: String, val texto: String) {
@@ -22,7 +22,8 @@ enum class AppMessage(val codigo: String, val texto: String) {
     MSG_14("MSG-14", "Tiene una jornada abierta. Finalícela antes de iniciar otra."),
     MSG_15("MSG-15", "Registre un comentario para marcar el registro como Observado."),
     MSG_16("MSG-16", "Ya existe un registro con ese valor en el catálogo."),
-    MSG_17("MSG-17", "Ya existe un usuario registrado con ese correo o cédula.");
+    MSG_17("MSG-17", "Ya existe un usuario registrado con ese correo o cédula."),
+    MSG_18("MSG-18", "No se pudo completar la operación. Intente nuevamente.");
 
     companion object {
         fun desdeCodigo(codigo: String): AppMessage? =

@@ -10,12 +10,13 @@ import { mapearUsuarioSesion } from '../mapper/usuarioMapper';
 /**
  * Traduce errores de Firebase Auth al catálogo normalizado.
  * - auth/user-disabled (baja lógica de gestionarUsuario) → MSG-03.
- * - Resto (credenciales, usuario inexistente, red) → MSG-01 opaco.
- *   Pendiente de decisión del equipo: mensaje específico para fallo de red en web.
+ * - auth/network-request-failed → MSG-18 (no es un problema de credenciales).
+ * - Resto (credenciales, usuario inexistente) → MSG-01 opaco.
  */
 export function mapearErrorAuth(error: unknown): CodigoMensaje {
-  if (error instanceof FirebaseError && error.code === 'auth/user-disabled') {
-    return 'MSG-03';
+  if (error instanceof FirebaseError) {
+    if (error.code === 'auth/user-disabled') return 'MSG-03';
+    if (error.code === 'auth/network-request-failed') return 'MSG-18';
   }
   return 'MSG-01';
 }

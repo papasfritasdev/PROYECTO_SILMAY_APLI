@@ -16,7 +16,7 @@ No intentes leer todo el repositorio. Consulta específicamente el archivo neces
 - Consulta `docs/INDEX.md` para identificar qué documento rige cada módulo.
 - Consulta `docs/firebase-schema.md` antes de crear modelos, repositorios o consultas.
 - Consulta `docs/business-formulas.md` antes de implementar cálculos de tiempo, costos o maquinaria.
-- Consulta `docs/messages-catalog.md` para obtener los textos exactos de interfaz (códigos MSG-01 a MSG-17).
+- Consulta `docs/messages-catalog.md` para obtener los textos exactos de interfaz (códigos MSG-01 a MSG-18).
 - Consulta `docs/playbook/04-ai-guardrails.md` para respetar la Definición de Terminado (DoD).
 - Consulta `docs/specs/sprint-XX-specs.md` para validar los Criterios de Aceptación Gherkin del sprint.
 
