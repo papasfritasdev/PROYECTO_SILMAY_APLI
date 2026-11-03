@@ -1,10 +1,17 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { MODULOS_WEB } from './domain/navigation/modulosPorRol';
+import type { ReactElement } from 'react';
+import { MODULOS_WEB, type ModuloWeb } from './domain/navigation/modulosPorRol';
 import { LoginPage } from './features/auth/LoginPage';
 import { RutaProtegida } from './features/auth/RutaProtegida';
 import { InicioPage } from './features/panel/InicioPage';
 import { ModuloPendiente } from './features/panel/ModuloPendiente';
 import { PanelLayout } from './features/panel/PanelLayout';
+import { UsuariosPage } from './features/usuarios/UsuariosPage';
+
+/** Módulos ya implementados; el resto muestra un marcador hasta su sprint. */
+const PANTALLAS: Partial<Record<ModuloWeb, () => ReactElement>> = {
+  usuarios: () => <UsuariosPage />
+};
 
 /** Rutas de la plataforma web. Cada módulo exige sesión y permiso de rol (HT-08). */
 export function AppRoutes() {
@@ -26,7 +33,7 @@ export function AppRoutes() {
             path={modulo}
             element={
               <RutaProtegida modulo={modulo}>
-                <ModuloPendiente modulo={modulo} />
+                {PANTALLAS[modulo]?.() ?? <ModuloPendiente modulo={modulo} />}
               </RutaProtegida>
             }
           />
