@@ -1,3 +1,4 @@
+import type { EstadoMaquina, TipoEquipo } from '../../domain/model/Maquina';
 import type { ModuloWeb } from '../../domain/navigation/modulosPorRol';
 import type { Rol } from '../../domain/model/Rol';
 
@@ -17,4 +18,18 @@ export const ETIQUETA_ROL: Readonly<Record<Rol, string>> = {
   supervisor: 'Supervisor',
   contador: 'Contador',
   admin: 'Administrador'
+};
+
+export const ETIQUETA_TIPO_EQUIPO: Readonly<Record<TipoEquipo, string>> = {
+  excavadora: 'Excavadora',
+  cargadora: 'Cargadora',
+  retroexcavadora: 'Retroexcavadora',
+  'tractocamión': 'Tractocamión',
+  volqueta: 'Volqueta'
+};
+
+export const ETIQUETA_ESTADO_MAQUINA: Readonly<Record<EstadoMaquina, string>> = {
+  operativa: 'Operativa',
+  requiere_mantenimiento: 'Requiere mantenimiento',
+  inactiva: 'Inactiva'
 };

@@ -4,7 +4,9 @@ import { BrowserRouter } from 'react-router-dom';
 import { AppRoutes } from './App';
 import { auth, db, functions } from './data/firebase';
 import { FirebaseAuthRepository } from './data/repository/FirebaseAuthRepository';
+import { FirebaseMaquinariaRepository } from './data/repository/FirebaseMaquinariaRepository';
 import { FirebaseUsuariosRepository } from './data/repository/FirebaseUsuariosRepository';
+import { RegistradorRechazosFirebase } from './data/repository/RegistradorRechazos';
 import { AuthProvider } from './hooks/AuthContext';
 import { RepositoriosProvider, type Repositorios } from './hooks/RepositoriosContext';
 import './styles.css';
@@ -12,7 +14,8 @@ import './styles.css';
 // Composición raíz: única pieza que conoce las implementaciones concretas (DI manual).
 const authRepository = new FirebaseAuthRepository(auth, db);
 const repositorios: Repositorios = {
-  usuarios: new FirebaseUsuariosRepository(db, functions)
+  usuarios: new FirebaseUsuariosRepository(db, functions),
+  maquinaria: new FirebaseMaquinariaRepository(db, new RegistradorRechazosFirebase(functions))
 };
 
 const contenedor = document.getElementById('root');

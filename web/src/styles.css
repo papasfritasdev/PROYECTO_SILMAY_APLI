@@ -282,3 +282,8 @@ body {
   background: var(--color-error-fondo);
   color: var(--color-error-texto);
 }
+
+.formulario__calculo {
+  margin: 0 0 1rem;
+  color: var(--color-texto-suave);
+}

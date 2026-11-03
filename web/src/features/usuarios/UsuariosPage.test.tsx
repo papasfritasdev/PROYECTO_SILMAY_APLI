@@ -6,6 +6,7 @@ import { APP_MESSAGES } from '../../domain/constants/messages';
 import { AuthProvider } from '../../hooks/AuthContext';
 import { RepositoriosProvider } from '../../hooks/RepositoriosContext';
 import { FakeAuthRepository, sesionDePrueba } from '../../test/FakeAuthRepository';
+import { FakeMaquinariaRepository } from '../../test/FakeMaquinariaRepository';
 import { FakeUsuariosRepository, usuarioDePrueba } from '../../test/FakeUsuariosRepository';
 
 const ADMIN = sesionDePrueba('admin');
@@ -14,7 +15,7 @@ function renderUsuarios(repo: FakeUsuariosRepository): void {
   render(
     <MemoryRouter initialEntries={['/usuarios']}>
       <AuthProvider repository={FakeAuthRepository.conSesionPersistida(ADMIN)}>
-        <RepositoriosProvider repositorios={{ usuarios: repo }}>
+        <RepositoriosProvider repositorios={{ usuarios: repo, maquinaria: new FakeMaquinariaRepository() }}>
           <AppRoutes />
         </RepositoriosProvider>
       </AuthProvider>

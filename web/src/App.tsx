@@ -6,11 +6,13 @@ import { RutaProtegida } from './features/auth/RutaProtegida';
 import { InicioPage } from './features/panel/InicioPage';
 import { ModuloPendiente } from './features/panel/ModuloPendiente';
 import { PanelLayout } from './features/panel/PanelLayout';
+import { MaquinariaPage } from './features/maquinaria/MaquinariaPage';
 import { UsuariosPage } from './features/usuarios/UsuariosPage';
 
 /** Módulos ya implementados; el resto muestra un marcador hasta su sprint. */
 const PANTALLAS: Partial<Record<ModuloWeb, () => ReactElement>> = {
-  usuarios: () => <UsuariosPage />
+  usuarios: () => <UsuariosPage />,
+  maquinaria: () => <MaquinariaPage />
 };
 
 /** Rutas de la plataforma web. Cada módulo exige sesión y permiso de rol (HT-08). */

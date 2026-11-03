@@ -5,7 +5,15 @@ import { AppRoutes } from './App';
 import { APP_MESSAGES } from './domain/constants/messages';
 import type { OpcionesInactividad } from './hooks/useInactividad';
 import { AuthProvider } from './hooks/AuthContext';
+import { RepositoriosProvider, type Repositorios } from './hooks/RepositoriosContext';
+import { FakeMaquinariaRepository } from './test/FakeMaquinariaRepository';
+import { FakeUsuariosRepository } from './test/FakeUsuariosRepository';
 import { FakeAuthRepository, sesionDePrueba } from './test/FakeAuthRepository';
+
+const repositoriosVacios = (): Repositorios => ({
+  usuarios: new FakeUsuariosRepository(),
+  maquinaria: new FakeMaquinariaRepository()
+});
 
 function renderApp(
   repo: FakeAuthRepository,
@@ -15,7 +23,9 @@ function renderApp(
   render(
     <MemoryRouter initialEntries={[ruta]}>
       <AuthProvider repository={repo} inactividad={inactividad}>
-        <AppRoutes />
+        <RepositoriosProvider repositorios={repositoriosVacios()}>
+          <AppRoutes />
+        </RepositoriosProvider>
       </AuthProvider>
     </MemoryRouter>
   );
@@ -60,7 +70,9 @@ describe('Plataforma web — login y rutas protegidas (HT-08, HU-01b)', () => {
       const { unmount } = render(
         <MemoryRouter initialEntries={['/login']}>
           <AuthProvider repository={repo}>
-            <AppRoutes />
+            <RepositoriosProvider repositorios={repositoriosVacios()}>
+              <AppRoutes />
+            </RepositoriosProvider>
           </AuthProvider>
         </MemoryRouter>
       );

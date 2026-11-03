@@ -1,12 +1,12 @@
 # Informe de Relevo Técnico — Sprint 2: Modelo de Datos, Security Rules, Base Web y Datos Maestros
 
 > **ESTADO: EN PROGRESO (documento vivo).** Se actualiza al cerrar cada historia o PR.
-> Última actualización: 03/11/2026 — tras HU-02 web (PR #7).
+> Última actualización: 03/11/2026 — tras HU-09 + `registrarRechazo` (PR #8).
 
 - **Fecha de Cierre:** — (sprint en curso)
 - **Desarrollador Responsable:** Alejandro (`AlejandroR9AlphaCore`)
 - **Asistente IA Utilizado:** Claude (Claude Code)
-- **Puntos de Historia Completados:** 14 / 27 Pts (HT-05, HT-08, HU-01b, HU-02)
+- **Puntos de Historia Completados:** 17 / 27 Pts (HT-05, HT-08, HU-01b, HU-02, HU-09)
 
 ---
 
@@ -18,7 +18,7 @@
 | HU-02 | Usuario | Gestión de usuarios y roles | 5 | Código completo (CA1–CA4): backend #5 + UI web #7 | #5, #7 |
 | HT-08 | Arquitectura | Base de la plataforma web React | 3 | Código completo · Hosting solo configurado (sin nube) | #6 |
 | HU-01b | Usuario | Inicio de sesión por rol en web | 1 | Código completo (CA1–CA3) · pendiente prueba manual | #6 |
-| HU-09 | Usuario | Gestión de maquinaria y volquetas | 3 | Pendiente | — |
+| HU-09 | Usuario | Gestión de maquinaria y volquetas | 3 | Código completo (CA1–CA3) · pendiente prueba manual | #8 |
 | HT-07 | Arquitectura | Capa de persistencia local y sync | 8 | Pendiente | — |
 | HT-12 | Infraestructura | Respaldo mensual de Firestore | 2 | Pendiente (validación real imposible sin nube) | — |
 
@@ -30,12 +30,14 @@
 | HU-01a CA1: login exitoso no navegaba | `SesionViewModel` + `SilmayNavHost` + `MenuPrincipalScreen` por rol; sesión persistida al reabrir offline | #4 |
 | HU-01a CA3: `ERROR_USER_DISABLED` mostraba MSG-01 | Mapeado a MSG-03 en `AuthRepositoryImpl` | #4 |
 | Reglas `deny all` impedían leer `usuarios/{uid}` en login | Reglas RBAC de HT-05 | #3 |
+| `data_extraction_rules.xml` vacío: en Android 12+ `allowBackup="false"` no impide la transferencia entre dispositivos | Exclusión de todos los dominios en respaldo y transferencia (RNF-05) | #8 |
+| `gestionarUsuario` fallaba en el emulador (`admin.firestore.FieldValue` undefined) | Import modular `firebase-admin/firestore` | #7 |
 
 Validación manual P1–P11 (guía en el historial del equipo) **aprobada** por el desarrollador sobre Android Emulator + Firebase Emulator Suite.
 
 ### Orden de integración de PRs (apilados)
 
-`#3 (feature/sp2-security-rules → develop)` → `#4 (feature/sp1-cierre-brechas)` → `#5 (feature/sp2-gestion-usuarios)` → `#6 (feature/sp2-web-base)` → `#7 (feature/sp2-usuarios-web)`.
+`#3 (feature/sp2-security-rules → develop)` → `#4 (feature/sp1-cierre-brechas)` → `#5 (feature/sp2-gestion-usuarios)` → `#6 (feature/sp2-web-base)` → `#7 (feature/sp2-usuarios-web)` → `#8 (feature/sp2-maquinaria)`.
 Al integrar cada PR y borrar su rama, GitHub retargetea el siguiente automáticamente. **El merge lo realiza el compañero tras su revisión.**
 
 ---
@@ -66,6 +68,13 @@ Al integrar cada PR y borrar su rama, GitHub retargetea el siguiente automática
   - Dominio: `domain/model/Usuario.ts`, `domain/validation/identidad.ts` (paridad con el servidor), `domain/validation/validarUsuario.ts`, `domain/usecase/GuardarUsuarioUseCase.ts` (alta, edición, baja/reactivación, autoprotección del admin), `domain/repository/UsuariosRepository.ts`
   - Datos: `data/repository/FirebaseUsuariosRepository.ts` (listado `onSnapshot` + callable `gestionarUsuario`), `data/errores.ts` (`already-exists`→MSG-17, permisos→MSG-13, resto→MSG-18)
   - Hooks/Features: `hooks/RepositoriosContext.tsx` (DI), `hooks/useUsuarios.ts`, `features/usuarios/UsuariosPage.tsx`, `features/usuarios/UsuarioFormulario.tsx`
+- **HU-09 (`web/src/`):**
+  - Dominio: `domain/model/Maquina.ts`, `domain/fleet/flota.ts` (próximo mantenimiento, normalización de código/placa, estado al reactivar), `domain/validation/validarMaquina.ts`, `domain/usecase/GestionarMaquinariaUseCase.ts`, `domain/repository/MaquinariaRepository.ts`
+  - Datos: `data/repository/FirebaseMaquinariaRepository.ts` (alta en transacción → MSG-09 sin sobrescribir; placa por consulta), `data/repository/RegistradorRechazos.ts`, `data/mapper/maquinaMapper.ts`
+  - Features: `features/maquinaria/MaquinariaPage.tsx`, `MaquinaFormulario.tsx` (próximo mantenimiento calculado en vivo)
+  - Pruebas: `src/test/emuladores.ts` (utilidades compartidas de integración)
+- **Functions:** `firebase/functions/src/registrarRechazo.ts` (callable, autor desde el token)
+- **Android:** `res/xml/data_extraction_rules.xml`, `res/xml/backup_rules.xml` (exclusión total)
 - **Scripts (`scripts/`):** `sembrar-catalogos.ts` (idempotente con `create()`)
 - **Documentación:** `docs/messages-catalog.md` (+ MSG-17, MSG-18), `docs/cloud-functions.md` (§2.2 contrato de `gestionarUsuario`), rango MSG-01..MSG-17 en INDEX/AGENTS/CLAUDE/playbook
 
@@ -96,11 +105,12 @@ Al integrar cada PR y borrar su rama, GitHub retargetea el siguiente automática
 | Suite | Comando | Resultado |
 | :--- | :--- | :--- |
 | Android unitarias | `cd android; .\gradlew testDebugUnitTest` | 39/39 |
-| Functions unitarias | `cd firebase\functions; npm test` | 24/24 |
-| Functions integración | `npm run test:integration` (Auth + Firestore Emulator) | 11/11 |
+| Android lint | `.\gradlew lintDebug` | 0 errores · 50 advertencias (ver §5.1) |
+| Functions unitarias | `cd firebase\functions; npm test` | 28/28 |
+| Functions integración | `npm run test:integration` (Auth + Firestore Emulator) | 13/13 |
 | Security Rules | `npm run test:rules` (Firestore Emulator) | 73/73 |
-| Web unitarias + componentes | `cd web; npm test` / `npm run coverage` | 79/79 · dominio 100% |
-| Web integración | `npm run test:integration` (Auth + Firestore + **Functions** emulator, reglas reales) | 10/10 |
+| Web unitarias + componentes | `cd web; npm test` / `npm run coverage` | 110/110 · dominio 100% |
+| Web integración | `npm run test:integration` (Auth + Firestore + **Functions** emulator, reglas reales) | 15/15 |
 
 ---
 
@@ -112,11 +122,11 @@ Al integrar cada PR y borrar su rama, GitHub retargetea el siguiente automática
 3. **Kover:** dependencia aprobada, no configurada. Agregar plugin, regla de verificación ≥ 70% sobre `ec.silmay.app.domain` y `koverHtmlReport` en CI.
 4. **CI de Functions incompleto:** agregar `npm run test:rules` y `npm run test:integration` (requieren `firebase-tools` y Java en el runner).
 5. **CI web:** el job `web-ci` también tiene el bug de rutas (comprueba `web/package.json` dentro de `working-directory: web`) y no ejecuta `npm test` ni `npm run coverage`.
-6. **`lintDebug`** está en el playbook pero no en el CI.
+6. **`lintDebug`** está en el playbook pero no en el CI. Ejecutado localmente: 0 errores; 50 advertencias — 25 `UnusedResources` (los `msg_XX` de `strings.xml` duplican `AppMessage` del dominio y no se usan), 22 de versiones de dependencias (actualizar requiere consenso), 1 `RedundantLabel`, 1 `OldTargetApi`.
+7. **PRs apilados sin CI:** el workflow solo corre en PRs hacia `develop`/`main`; los PRs #4–#8 (base = otra rama feature) tienen **0 checks**. Al retargetearse a `develop`, el cambio de base no dispara el workflow: hacer un push o re-ejecutarlo manualmente.
 
 ### 5.2 Pendientes de historias del Sprint 2
-- **HU-09:** alta de maquinaria con **transacción** (leer → MSG-09 si existe → crear): un `set()` sobre ID existente es *update* y las reglas no lo impiden; verificación de placa por consulta.
-- **HT-07 / HU-09 CA3:** callable `registrarRechazo` (aprobada) para auditar `PERMISSION_DENIED`; documentarla en `docs/cloud-functions.md`.
+- **HT-07:** reutilizar `registrarRechazo` (ya implementada, `docs/cloud-functions.md` §2.3) desde Android con `origen: 'android'`.
 - **HT-12:** sin nube, la exportación/restauración solo puede probarse con mocks; documentar la limitación.
 
 ### 5.3 Decisiones abiertas con el equipo
@@ -125,6 +135,10 @@ Al integrar cada PR y borrar su rama, GitHub retargetea el siguiente automática
 - **Validación de formularios sin mensajes de catálogo** (acordado): ayudas de formato fijas por campo (`aria-describedby`), marcado `aria-invalid` y botón Guardar bloqueado.
 - Vacíos de esquema: PK de `conciliaciones` (`periodo`) colisiona entre `tipo` despachos/gastos; HU-11 pide "fecha de atención" no definida en `notificaciones`; `telefono` (solo Admin) no es restringible por campo en reglas.
 - Bloqueo de cierre de sesión con registros pendientes de sync (sync-protocol §5) → Sprint 3 (HU-08).
+- **Seguridad de scripts:** `scripts/crear-admin-inicial.ts` en modo `--prod` usa la contraseña por defecto `Silmay2026!Admin` (publicada en el repo) si no se define `ADMIN_PASSWORD`. Antes de cualquier uso en la nube: exigir la variable y fallar si falta.
+- **Atomicidad de `gestionarUsuario` (limitación):** al editar se actualiza Auth y luego Firestore; si Firestore falla, ambos quedan desalineados (no hay transacciones entre Auth y Firestore).
+- **Unicidad de placa (limitación):** se verifica por consulta previa; el SDK web no admite consultas dentro de transacciones, así que dos altas simultáneas con la misma placa podrían pasar (riesgo bajo: solo el admin registra flota).
+- **`registrarRechazo` sin límite de frecuencia:** un usuario autenticado podría inflar la auditoría con entradas a su propio nombre.
 
 ### 5.4 Advertencias y "Gotchas"
 - **Solo emulador** (decisión por costos): no hay proyecto en la nube; HT-02 (presupuesto) y el despliegue de Hosting no son verificables.
@@ -140,4 +154,4 @@ Al integrar cada PR y borrar su rama, GitHub retargetea el siguiente automática
 ---
 
 ## 6. Objetivo de Arranque Sugerido (siguiente paso)
-- **HU-09 + `registrarRechazo`:** flota con MSG-09 (transacción), baja lógica y auditoría de `PERMISSION_DENIED`.
+- **HT-07:** capa de persistencia Android (repositorios con UUID v4 y metadatos de control, cola de 50 mutaciones, auditoría de rechazos).
