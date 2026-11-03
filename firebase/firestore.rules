@@ -1,8 +1,478 @@
 rules_version = '2';
+
+// =============================================================================
+// SILMAY — Security Rules autoritativas (HT-05, Sprint 2)
+// Fuentes: docs/firebase-schema.md, docs/sync-protocol.md, docs/specs/sprint-0X-specs.md
+//
+// Principios:
+//  - Denegación por defecto: toda ruta no declarada queda bloqueada.
+//  - RBAC por Custom Claim `role` (inyectado solo por servidor, ADR-0003).
+//  - Baja lógica inmediata: además del claim, se exige `usuarios/{uid}.estado == true`.
+//  - Prohibido el borrado físico en todas las colecciones (`allow delete: if false`).
+//  - Escrituras de sistema (procesarJornada, consolidarPeriodo, auditoria) solo vía Admin SDK,
+//    que no evalúa estas reglas.
+// =============================================================================
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Regla base de Sprint 1: denegar por defecto
-    // Las reglas RBAC completas de negocio se implementarán en HT-05 (Sprint 2)
+
+    // -------------------------------------------------------------------------
+    // Identidad y RBAC
+    // -------------------------------------------------------------------------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function role() {
+      return request.auth.token.role;
+    }
+
+    function userPath() {
+      return /databases/$(database)/documents/usuarios/$(request.auth.uid);
+    }
+
+    // Usuario autenticado con perfil existente y no dado de baja (HU-02 CA3).
+    function isActive() {
+      return isSignedIn() && exists(userPath()) && get(userPath()).data.estado == true;
+    }
+
+    function myZona() {
+      return get(userPath()).data.zonaAsignada;
+    }
+
+    function hasRole(r) {
+      return isActive() && role() == r;
+    }
+
+    function isAdmin() {
+      return hasRole('admin');
+    }
+
+    function isContador() {
+      return hasRole('contador');
+    }
+
+    function isSupervisor() {
+      return hasRole('supervisor');
+    }
+
+    // Roles habilitados en la app móvil (HU-01a CA4).
+    function isMobileRole() {
+      return isActive() && role() in ['operador', 'supervisor'];
+    }
+
+    function isBackOffice() {
+      return isActive() && role() in ['admin', 'contador'];
+    }
+
+    // -------------------------------------------------------------------------
+    // Utilidades de validación
+    // -------------------------------------------------------------------------
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function changedKeys() {
+      return incoming().diff(existing()).affectedKeys();
+    }
+
+    function nonEmptyString(v) {
+      return v is string && v.size() > 0;
+    }
+
+    function optionalString(v) {
+      return v == null || v is string;
+    }
+
+    function positive(v) {
+      return v is number && v > 0;
+    }
+
+    // -------------------------------------------------------------------------
+    // Campos de control obligatorios de registros operativos (firebase-schema §1)
+    // -------------------------------------------------------------------------
+    function controlKeys() {
+      return ['uuid', 'createdAtClient', 'syncedAtServer', 'userId', 'deviceId', 'zona'];
+    }
+
+    function validControlOnCreate(docId) {
+      return incoming().uuid == docId
+        && incoming().userId == request.auth.uid
+        && nonEmptyString(incoming().deviceId)
+        && incoming().zona == myZona()
+        && incoming().createdAtClient is timestamp
+        && incoming().syncedAtServer == request.time;
+    }
+
+    // Reintento idempotente del SDK offline: el mismo set() reenviado solo altera
+    // syncedAtServer (FieldValue.serverTimestamp()). Evita falsos PERMISSION_DENIED (RNF-11).
+    function isIdempotentRetry() {
+      return isMobileRole()
+        && existing().userId == request.auth.uid
+        && changedKeys().hasOnly(['syncedAtServer'])
+        && incoming().syncedAtServer == request.time;
+    }
+
+    // Lectura de registros operativos: titular, supervisor de su zona, contador y admin.
+    function canReadOperational() {
+      return isBackOffice()
+        || (isMobileRole() && existing().userId == request.auth.uid)
+        || (isSupervisor() && existing().zona == myZona());
+    }
+
+    // -------------------------------------------------------------------------
+    // Validación contable (sync-protocol §3.4, HU-13): el contador solo toca 4 campos.
+    // -------------------------------------------------------------------------
+    function validationKeys() {
+      return ['estadoValidacion', 'validadoPor', 'fechaValidacion', 'comentarioValidacion'];
+    }
+
+    function pendingValidationOnCreate() {
+      return incoming().estadoValidacion == 'pendiente'
+        && incoming().validadoPor == null
+        && incoming().fechaValidacion == null
+        && incoming().comentarioValidacion == null;
+    }
+
+    function isValidValidationUpdate() {
+      return isContador()
+        && changedKeys().hasOnly(validationKeys())
+        && incoming().estadoValidacion in ['validado', 'observado']
+        && incoming().validadoPor == request.auth.uid
+        && incoming().fechaValidacion == request.time
+        && optionalString(incoming().comentarioValidacion)
+        // MSG-15: "Observado" exige justificación.
+        && (incoming().estadoValidacion != 'observado'
+            || nonEmptyString(incoming().comentarioValidacion));
+    }
+
+    // =========================================================================
+    // 2.1 usuarios — escritura exclusiva de la Cloud Function gestionarUsuario.
+    // =========================================================================
+    match /usuarios/{uid} {
+      // El propio usuario puede leer su perfil aunque esté dado de baja, para que
+      // la app pueda mostrar MSG-03 en lugar de un error opaco.
+      allow read: if (isSignedIn() && request.auth.uid == uid) || isAdmin();
+      allow write: if false;
+    }
+
+    // =========================================================================
+    // 2.2 jornadas — captura offline de turnos (ADR-0007, sync-protocol §4).
+    // =========================================================================
+    function jornadaKeys() {
+      return controlKeys().concat([
+        'maquinaId', 'lugarId', 'horaInicio', 'horaSalida',
+        'horometroInicial', 'horometroFinal', 'horasBrutas', 'horasRestadas',
+        'horasEfectivas', 'deltaHorometro', 'observaciones', 'estado',
+        'tieneFallaCritica', 'notificadaFalla', 'procesada', 'deducciones'
+      ]);
+    }
+
+    function jornadaImmutableKeys() {
+      return controlKeys().removeAll(['syncedAtServer']).concat([
+        'maquinaId', 'lugarId', 'horaInicio', 'horometroInicial',
+        'procesada', 'notificadaFalla'
+      ]);
+    }
+
+    function validJornadaShape(d) {
+      return d.keys().hasAll(jornadaKeys())
+        && d.keys().hasOnly(jornadaKeys())
+        && nonEmptyString(d.maquinaId)
+        && nonEmptyString(d.lugarId)
+        && d.horaInicio is timestamp
+        && d.horometroInicial is number && d.horometroInicial >= 0
+        && d.horasRestadas is number && d.horasRestadas >= 0
+        && optionalString(d.observaciones)
+        && d.tieneFallaCritica is bool
+        && d.deducciones is list
+        && d.estado in ['abierta', 'cerrada'];
+    }
+
+    // Coherencia por estado (business-formulas §1.2: MSG-11, MSG-05, MSG-12).
+    function validJornadaState(d) {
+      return (d.estado == 'abierta'
+          && d.horaSalida == null
+          && d.horometroFinal == null
+          && d.horasBrutas == null
+          && d.horasEfectivas == null
+          && d.deltaHorometro == null)
+        || (d.estado == 'cerrada'
+          && d.horaSalida is timestamp
+          && d.horaSalida > d.horaInicio
+          && d.horometroFinal is number
+          && d.horometroFinal > d.horometroInicial
+          && d.horasBrutas is number
+          && d.horasRestadas < d.horasBrutas
+          && d.horasEfectivas is number
+          && d.deltaHorometro is number);
+    }
+
+    match /jornadas/{jornadaId} {
+      allow read: if canReadOperational();
+
+      allow create: if isMobileRole()
+        && validControlOnCreate(jornadaId)
+        && validJornadaShape(incoming())
+        && validJornadaState(incoming())
+        && incoming().procesada == false
+        && incoming().notificadaFalla == false;
+
+      // Una jornada cerrada es inmutable desde el móvil; procesada/notificadaFalla
+      // solo las cambia procesarJornada (Admin SDK).
+      allow update: if isIdempotentRetry()
+        || (isMobileRole()
+          && existing().userId == request.auth.uid
+          && existing().estado == 'abierta'
+          && !changedKeys().hasAny(jornadaImmutableKeys())
+          && incoming().syncedAtServer == request.time
+          && validJornadaShape(incoming())
+          && validJornadaState(incoming()));
+
+      allow delete: if false;
+    }
+
+    // =========================================================================
+    // 2.3 despachos — ventas offline de material pétreo (HU-03).
+    // =========================================================================
+    function despachoKeys() {
+      return controlKeys().concat(validationKeys()).concat([
+        'materialId', 'unidadMedida', 'cantidad', 'clienteId', 'volquetaId',
+        'lugarId', 'metodoCobro', 'valorUSD', 'fechaHora'
+      ]);
+    }
+
+    match /despachos/{despachoId} {
+      allow read: if canReadOperational();
+
+      allow create: if isMobileRole()
+        && validControlOnCreate(despachoId)
+        && incoming().keys().hasAll(despachoKeys())
+        && incoming().keys().hasOnly(despachoKeys())
+        && nonEmptyString(incoming().materialId)
+        && incoming().unidadMedida in ['m3', 'viajes']
+        && positive(incoming().cantidad)
+        && nonEmptyString(incoming().clienteId)
+        && nonEmptyString(incoming().volquetaId)
+        && nonEmptyString(incoming().lugarId)
+        && incoming().metodoCobro in ['efectivo', 'transferencia', 'credito']
+        && positive(incoming().valorUSD)
+        && incoming().fechaHora is timestamp
+        && pendingValidationOnCreate();
+
+      allow update: if isIdempotentRetry() || isValidValidationUpdate();
+      allow delete: if false;
+    }
+
+    // =========================================================================
+    // 2.4 gastos — egresos de campo (HU-06).
+    // =========================================================================
+    function gastoKeys() {
+      return controlKeys().concat(validationKeys()).concat([
+        'rubro', 'descripcion', 'montoUSD', 'numeroComprobante', 'unidadId', 'fechaHora'
+      ]);
+    }
+
+    match /gastos/{gastoId} {
+      allow read: if canReadOperational();
+
+      allow create: if isMobileRole()
+        && validControlOnCreate(gastoId)
+        && incoming().keys().hasAll(gastoKeys())
+        && incoming().keys().hasOnly(gastoKeys())
+        && incoming().rubro in ['combustible', 'viáticos', 'repuestos', 'otros']
+        && optionalString(incoming().descripcion)
+        && (incoming().rubro != 'otros' || nonEmptyString(incoming().descripcion))
+        // MSG-07: monto positivo.
+        && positive(incoming().montoUSD)
+        && optionalString(incoming().numeroComprobante)
+        && nonEmptyString(incoming().unidadId)
+        && incoming().fechaHora is timestamp
+        && pendingValidationOnCreate();
+
+      allow update: if isIdempotentRetry() || isValidValidationUpdate();
+      allow delete: if false;
+    }
+
+    // =========================================================================
+    // 2.5 maquinaria — flota unificada (HU-09). Document ID = codigoInterno,
+    // lo que vuelve atómica la unicidad del código (MSG-09).
+    // =========================================================================
+    function maquinariaKeys() {
+      return [
+        'codigoInterno', 'placa', 'marca', 'modelo', 'tipoEquipo', 'horometroBase',
+        'horometroActual', 'intervaloMantenimiento', 'proximoMantenimientoHoras', 'estado'
+      ];
+    }
+
+    function validMaquinaria(d) {
+      return d.keys().hasAll(maquinariaKeys())
+        && d.keys().hasOnly(maquinariaKeys())
+        && nonEmptyString(d.codigoInterno)
+        && optionalString(d.placa)
+        && nonEmptyString(d.marca)
+        && nonEmptyString(d.modelo)
+        && d.tipoEquipo in ['excavadora', 'cargadora', 'retroexcavadora', 'tractocamión', 'volqueta']
+        // La placa es obligatoria en volquetas.
+        && (d.tipoEquipo != 'volqueta' || nonEmptyString(d.placa))
+        && d.horometroBase is number && d.horometroBase >= 0
+        && d.horometroActual is number && d.horometroActual >= 0
+        && positive(d.intervaloMantenimiento)
+        && d.proximoMantenimientoHoras is number
+        && d.estado in ['operativa', 'requiere_mantenimiento', 'inactiva'];
+    }
+
+    match /maquinaria/{codigo} {
+      allow read: if isActive();
+
+      // HU-09 CA1: proximoMantenimientoHoras = horometroBase + intervaloMantenimiento
+      // (tolerancia de 0.05 por el redondeo a 1 decimal en cliente).
+      allow create: if isAdmin()
+        && validMaquinaria(incoming())
+        && incoming().codigoInterno == codigo
+        && incoming().horometroActual == incoming().horometroBase
+        && math.abs(incoming().proximoMantenimientoHoras
+            - (incoming().horometroBase + incoming().intervaloMantenimiento)) < 0.05
+        && incoming().estado == 'operativa';
+
+      allow update: if isAdmin()
+        && validMaquinaria(incoming())
+        && !changedKeys().hasAny(['codigoInterno']);
+
+      allow delete: if false;
+    }
+
+    // =========================================================================
+    // 2.6 mantenimientos — historial de servicios (HU-10, Sprint 4).
+    // =========================================================================
+    function mantenimientoKeys() {
+      return [
+        'id', 'maquinaId', 'fecha', 'costoUSD', 'repuestos',
+        'horometroServicio', 'nuevoLimite', 'realizadoPor'
+      ];
+    }
+
+    function validMantenimiento(d, docId) {
+      return d.keys().hasAll(mantenimientoKeys())
+        && d.keys().hasOnly(mantenimientoKeys())
+        && d.id == docId
+        && nonEmptyString(d.maquinaId)
+        && d.fecha is timestamp
+        && d.costoUSD is number && d.costoUSD >= 0
+        && d.repuestos is list
+        && d.horometroServicio is number && d.horometroServicio >= 0
+        && d.nuevoLimite is number && d.nuevoLimite > d.horometroServicio
+        && nonEmptyString(d.realizadoPor);
+    }
+
+    match /mantenimientos/{mantenimientoId} {
+      allow read: if isBackOffice();
+      allow create, update: if isAdmin() && validMantenimiento(incoming(), mantenimientoId);
+      allow delete: if false;
+    }
+
+    // =========================================================================
+    // 2.7 notificaciones — emitidas por procesarJornada; solo el Admin las atiende
+    // (HU-11 CA3/CA4).
+    // =========================================================================
+    match /notificaciones/{notificacionId} {
+      allow read: if isBackOffice();
+      allow create: if false;
+      allow update: if isAdmin()
+        && existing().atendida == false
+        && changedKeys().hasOnly(['atendida', 'atendidaPor'])
+        && incoming().atendida == true
+        && incoming().atendidaPor == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // =========================================================================
+    // 2.8 conciliaciones — cierre contable P_reg (HU-13, Sprint 5).
+    // =========================================================================
+    function conciliacionKeys() {
+      return ['periodo', 'tipo', 'registrosValidados', 'eventosReales', 'pReg', 'contadorId', 'fecha'];
+    }
+
+    match /conciliaciones/{conciliacionId} {
+      allow read: if isBackOffice();
+      allow create, update: if isContador()
+        && incoming().keys().hasAll(conciliacionKeys())
+        && incoming().keys().hasOnly(conciliacionKeys())
+        && incoming().periodo is string
+        && incoming().periodo.matches('^[0-9]{4}-(0[1-9]|1[0-2])$')
+        && incoming().tipo in ['despachos', 'gastos']
+        && incoming().registrosValidados is number && incoming().registrosValidados >= 0
+        && positive(incoming().eventosReales)
+        && incoming().pReg is number
+        && incoming().contadorId == request.auth.uid
+        && incoming().fecha == request.time;
+      allow delete: if false;
+    }
+
+    // =========================================================================
+    // 2.9 consolidados — generados por consolidarPeriodo; aprobación exclusiva
+    // del Admin y luego inmutables (HU-12 CA4).
+    // =========================================================================
+    match /consolidados/{consolidadoId} {
+      allow read: if isBackOffice();
+      allow create: if false;
+      allow update: if isAdmin()
+        && existing().estado == 'borrador'
+        && changedKeys().hasOnly(['estado', 'aprobadoPor', 'fechaAprobacion'])
+        && incoming().estado == 'aprobado'
+        && incoming().aprobadoPor == request.auth.uid
+        && incoming().fechaAprobacion == request.time;
+      allow delete: if false;
+    }
+
+    // =========================================================================
+    // 2.10 catalogos/{tipo}/items — maestros con baja lógica (HU-16).
+    // =========================================================================
+    match /catalogos/{tipo} {
+      allow read, write: if false;
+
+      match /items/{itemId} {
+        allow read: if isActive();
+        allow create, update: if isAdmin()
+          && tipo in ['materiales', 'clientes', 'lugares', 'rubros', 'motivos']
+          && incoming().keys().hasAll(['id', 'nombre', 'activo'])
+          && incoming().keys().hasOnly(['id', 'nombre', 'activo'])
+          && incoming().id == itemId
+          && nonEmptyString(incoming().nombre)
+          && incoming().activo is bool;
+        allow delete: if false;
+      }
+    }
+
+    // =========================================================================
+    // 2.11 parametros — documento único `sistema` (HU-16).
+    // =========================================================================
+    match /parametros/{parametroId} {
+      allow read: if isActive();
+      allow create, update: if isAdmin()
+        && parametroId == 'sistema'
+        && incoming().keys().hasAll(['umbralProximoMantenimiento', 'zonaHoraria'])
+        && incoming().keys().hasOnly(['umbralProximoMantenimiento', 'zonaHoraria'])
+        && incoming().umbralProximoMantenimiento is number
+        && incoming().umbralProximoMantenimiento >= 0
+        && incoming().umbralProximoMantenimiento <= 1
+        && nonEmptyString(incoming().zonaHoraria);
+      allow delete: if false;
+    }
+
+    // =========================================================================
+    // 2.12 auditoria — append-only, escrita solo por Cloud Functions
+    // (gestionarUsuario, registrarAuditoria, registrarRechazo).
+    // =========================================================================
+    match /auditoria/{auditoriaId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // Denegación por defecto (incluye la colección experimental spike_offline de HT-06).
     match /{document=**} {
       allow read, write: if false;
     }
