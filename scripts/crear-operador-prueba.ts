@@ -34,14 +34,16 @@ async function main() {
     console.log(`   - Firestore Emulator: ${process.env.FIRESTORE_EMULATOR_HOST}`);
   }
 
-  if (!admin.apps.length) {
-    admin.initializeApp({
+  const firebaseAdmin = (admin as any).default || admin;
+
+  if (!firebaseAdmin.apps?.length) {
+    firebaseAdmin.initializeApp({
       projectId: process.env.FIREBASE_PROJECT_ID || 'silmay-dev'
     });
   }
 
-  const auth = admin.auth();
-  const db = admin.firestore();
+  const auth = firebaseAdmin.auth();
+  const db = firebaseAdmin.firestore();
 
   console.log(`\n Verificando cuenta de Operador: ${OPERADOR_CONFIG.email}`);
 
@@ -104,6 +106,7 @@ async function main() {
   console.log(`   Custom Claim: role='${OPERADOR_CONFIG.rol}'`);
   console.log(`   Colección:    usuarios/${uid}`);
   console.log(' ==============================================================\n');
+  process.exit(0);
 }
 
 main().catch((error) => {

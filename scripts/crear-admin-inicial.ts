@@ -38,14 +38,15 @@ async function main() {
   }
 
   // Inicializar Firebase Admin
-  if (!admin.apps.length) {
-    admin.initializeApp({
+  const firebaseAdmin = (admin as any).default || admin;
+  if (!firebaseAdmin.apps?.length) {
+    firebaseAdmin.initializeApp({
       projectId: process.env.FIREBASE_PROJECT_ID || 'silmay-dev'
     });
   }
 
-  const auth = admin.auth();
-  const db = admin.firestore();
+  const auth = firebaseAdmin.auth();
+  const db = firebaseAdmin.firestore();
 
   console.log(`\n Verificando cuenta de Administrador: ${ADMIN_CONFIG.email}`);
 
