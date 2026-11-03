@@ -52,3 +52,30 @@ export function esEmailValido(email: unknown): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 }
+
+export const LONGITUD_MINIMA_CONTRASENA = 8;
+
+/**
+ * HU-02 CA1: contraseña mínima de 8 caracteres alfanuméricos.
+ * Acuerdo del equipo (Sprint 2): exige al menos una letra y un dígito; los símbolos se permiten.
+ * No admite espacios al inicio ni al final.
+ */
+export function esContrasenaValida(contrasena: unknown): boolean {
+  if (typeof contrasena !== 'string') return false;
+  if (contrasena !== contrasena.trim()) return false;
+  return (
+    contrasena.length >= LONGITUD_MINIMA_CONTRASENA &&
+    /\p{L}/u.test(contrasena) &&
+    /\d/.test(contrasena)
+  );
+}
+
+/**
+ * Teléfono ecuatoriano en formato nacional (`0…`) o internacional (`+593…`):
+ * celular `9XXXXXXXX` o fijo `[2-7]XXXXXXX`. Se ignoran espacios y guiones.
+ */
+export function esTelefonoEcuatorianoValido(telefono: unknown): boolean {
+  if (typeof telefono !== 'string') return false;
+  const normalizado = telefono.replace(/[\s-]/g, '');
+  return /^(?:0|\+593)(?:9\d{8}|[2-7]\d{7})$/.test(normalizado);
+}

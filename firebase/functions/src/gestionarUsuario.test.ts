@@ -15,6 +15,7 @@ describe("Cloud Function Callable: gestionarUsuario (Pruebas de Seguridad y Guar
     nombres: "Juan Perez",
     cedula: "1710034065",
     email: "juan.perez@silmay.ec",
+    telefono: "0991234567",
     password: "Password123!",
     rol: "operador",
     zonaAsignada: "cantera-banos",
@@ -115,5 +116,38 @@ describe("Cloud Function Callable: gestionarUsuario (Pruebas de Seguridad y Guar
     await expect(wrapped(payloadEmailInvalido, contextAdmin)).rejects.toThrow(
       /El formato del correo electrónico institucional es inválido/
     );
+  });
+  const contextAdminValidacion = {
+    auth: { uid: "admin-uid-123", token: { role: "admin" } }
+  };
+
+  it("HU-02 CA1: rechaza contraseñas de menos de 8 caracteres o sin letras y números", async () => {
+    await expect(
+      wrapped({ ...payloadValido, password: "Abc123" }, contextAdminValidacion)
+    ).rejects.toThrow(/al menos 8 caracteres e incluir letras y números/);
+    await expect(
+      wrapped({ ...payloadValido, password: "SoloLetrasLargas" }, contextAdminValidacion)
+    ).rejects.toThrow(/al menos 8 caracteres e incluir letras y números/);
+  });
+
+  it("HU-02 CA1: la contraseña es obligatoria al crear", async () => {
+    const sinPassword = { ...payloadValido };
+    delete sinPassword.password;
+    await expect(wrapped(sinPassword, contextAdminValidacion)).rejects.toThrow(/contraseña/);
+  });
+
+  it("HU-02 CA1: rechaza teléfonos que no sean ecuatorianos válidos", async () => {
+    await expect(
+      wrapped({ ...payloadValido, telefono: "12345" }, contextAdminValidacion)
+    ).rejects.toThrow(/teléfono debe ser un número ecuatoriano válido/);
+  });
+
+  it("rechaza que un admin se dé de baja o se retire su propio rol", async () => {
+    await expect(
+      wrapped({ ...payloadValido, uid: "admin-uid-123", rol: "admin", estado: false }, contextAdminValidacion)
+    ).rejects.toThrow(/no puede darse de baja/);
+    await expect(
+      wrapped({ ...payloadValido, uid: "admin-uid-123", rol: "operador" }, contextAdminValidacion)
+    ).rejects.toThrow(/no puede darse de baja/);
   });
 });
