@@ -1,12 +1,12 @@
 # Informe de Relevo Técnico — Sprint 2: Modelo de Datos, Security Rules, Base Web y Datos Maestros
 
 > **ESTADO: EN PROGRESO (documento vivo).** Se actualiza al cerrar cada historia o PR.
-> Última actualización: 03/11/2026 — tras HT-08 + HU-01b (PR #6).
+> Última actualización: 03/11/2026 — tras HU-02 web (PR #7).
 
 - **Fecha de Cierre:** — (sprint en curso)
 - **Desarrollador Responsable:** Alejandro (`AlejandroR9AlphaCore`)
 - **Asistente IA Utilizado:** Claude (Claude Code)
-- **Puntos de Historia Completados:** 9 / 27 Pts (HT-05, HT-08, HU-01b) · 5 Pts más en curso (HU-02, falta UI web)
+- **Puntos de Historia Completados:** 14 / 27 Pts (HT-05, HT-08, HU-01b, HU-02)
 
 ---
 
@@ -15,7 +15,7 @@
 | ID | Tipo | Título | Pts | Estado | Enlace a PR |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | HT-05 | Arquitectura | Modelo de datos y Security Rules | 5 | Código completo · pendiente merge y CI (Fase 0) | #3 |
-| HU-02 | Usuario | Gestión de usuarios y roles | 5 | **Parcial:** backend completo; falta UI web (CA2 "notifica en pantalla") | #5 |
+| HU-02 | Usuario | Gestión de usuarios y roles | 5 | Código completo (CA1–CA4): backend #5 + UI web #7 | #5, #7 |
 | HT-08 | Arquitectura | Base de la plataforma web React | 3 | Código completo · Hosting solo configurado (sin nube) | #6 |
 | HU-01b | Usuario | Inicio de sesión por rol en web | 1 | Código completo (CA1–CA3) · pendiente prueba manual | #6 |
 | HU-09 | Usuario | Gestión de maquinaria y volquetas | 3 | Pendiente | — |
@@ -35,7 +35,7 @@ Validación manual P1–P11 (guía en el historial del equipo) **aprobada** por 
 
 ### Orden de integración de PRs (apilados)
 
-`#3 (feature/sp2-security-rules → develop)` → `#4 (feature/sp1-cierre-brechas)` → `#5 (feature/sp2-gestion-usuarios)` → `#6 (feature/sp2-web-base)`.
+`#3 (feature/sp2-security-rules → develop)` → `#4 (feature/sp1-cierre-brechas)` → `#5 (feature/sp2-gestion-usuarios)` → `#6 (feature/sp2-web-base)` → `#7 (feature/sp2-usuarios-web)`.
 Al integrar cada PR y borrar su rama, GitHub retargetea el siguiente automáticamente. **El merge lo realiza el compañero tras su revisión.**
 
 ---
@@ -62,8 +62,12 @@ Al integrar cada PR y borrar su rama, GitHub retargetea el siguiente automática
   - Features: `features/auth/LoginPage.tsx`, `features/auth/RutaProtegida.tsx`, `features/panel/PanelLayout.tsx`, `InicioPage.tsx`, `ModuloPendiente.tsx`
   - Config: `web/vite.config.ts` (umbral cobertura 70% en `domain`), `web/vitest.integration.config.ts`; `firebase.json` (bloque `hosting` → `web/dist`, SPA)
   - CI: guardrail de imports prohibidos en `web/src/domain`
+- **HU-02 web (`web/src/`):**
+  - Dominio: `domain/model/Usuario.ts`, `domain/validation/identidad.ts` (paridad con el servidor), `domain/validation/validarUsuario.ts`, `domain/usecase/GuardarUsuarioUseCase.ts` (alta, edición, baja/reactivación, autoprotección del admin), `domain/repository/UsuariosRepository.ts`
+  - Datos: `data/repository/FirebaseUsuariosRepository.ts` (listado `onSnapshot` + callable `gestionarUsuario`), `data/errores.ts` (`already-exists`→MSG-17, permisos→MSG-13, resto→MSG-18)
+  - Hooks/Features: `hooks/RepositoriosContext.tsx` (DI), `hooks/useUsuarios.ts`, `features/usuarios/UsuariosPage.tsx`, `features/usuarios/UsuarioFormulario.tsx`
 - **Scripts (`scripts/`):** `sembrar-catalogos.ts` (idempotente con `create()`)
-- **Documentación:** `docs/messages-catalog.md` (+ MSG-17), `docs/cloud-functions.md` (§2.2 contrato de `gestionarUsuario`), rango MSG-01..MSG-17 en INDEX/AGENTS/CLAUDE/playbook
+- **Documentación:** `docs/messages-catalog.md` (+ MSG-17, MSG-18), `docs/cloud-functions.md` (§2.2 contrato de `gestionarUsuario`), rango MSG-01..MSG-17 en INDEX/AGENTS/CLAUDE/playbook
 
 ---
 
@@ -83,7 +87,7 @@ Al integrar cada PR y borrar su rama, GitHub retargetea el siguiente automática
 - [x] Criterios Gherkin cubiertos por pruebas en lo implementado (HT-05, HU-02 backend, HU-01a CA1/CA3).
 - [ ] **Cobertura en Dominio:** Web **100%** (Vitest v8, umbral 70% configurado) · Android **NO MEDIDA** (Kover no configurado — deuda Fase 0).
 - [x] Clean Architecture: dominios Android y Web sin imports de SDKs/frameworks (guardrail de CI para ambos).
-- [x] Catálogo de mensajes verificado: MSG-01..MSG-17 (MSG-17 agregado por acuerdo).
+- [x] Catálogo de mensajes verificado: MSG-01..MSG-18 (MSG-17 y MSG-18 agregados por acuerdo; la web verifica su copia contra el `.md` en cada `npm test`).
 - [x] Cero credenciales privadas versionadas (`google-services.json` local es un placeholder no versionado).
 - [ ] **Pipeline de CI en verde: NO VÁLIDO** — el CI actual omite todos los jobs (deuda Fase 0).
 
@@ -95,8 +99,8 @@ Al integrar cada PR y borrar su rama, GitHub retargetea el siguiente automática
 | Functions unitarias | `cd firebase\functions; npm test` | 24/24 |
 | Functions integración | `npm run test:integration` (Auth + Firestore Emulator) | 11/11 |
 | Security Rules | `npm run test:rules` (Firestore Emulator) | 73/73 |
-| Web unitarias + componentes | `cd web; npm test` / `npm run coverage` | 46/46 · dominio 100% |
-| Web integración | `npm run test:integration` (repo real + reglas en emulador) | 5/5 |
+| Web unitarias + componentes | `cd web; npm test` / `npm run coverage` | 79/79 · dominio 100% |
+| Web integración | `npm run test:integration` (Auth + Firestore + **Functions** emulator, reglas reales) | 10/10 |
 
 ---
 
@@ -111,14 +115,14 @@ Al integrar cada PR y borrar su rama, GitHub retargetea el siguiente automática
 6. **`lintDebug`** está en el playbook pero no en el CI.
 
 ### 5.2 Pendientes de historias del Sprint 2
-- **HU-02 web:** pantallas de alta/edición/baja; mapear `already-exists` → MSG-17.
 - **HU-09:** alta de maquinaria con **transacción** (leer → MSG-09 si existe → crear): un `set()` sobre ID existente es *update* y las reglas no lo impiden; verificación de placa por consulta.
 - **HT-07 / HU-09 CA3:** callable `registrarRechazo` (aprobada) para auditar `PERMISSION_DENIED`; documentarla en `docs/cloud-functions.md`.
 - **HT-12:** sin nube, la exportación/restauración solo puede probarse con mocks; documentar la limitación.
 
 ### 5.3 Decisiones abiertas con el equipo
-- Mensaje de catálogo para `failed-precondition` (admin intenta darse de baja o retirarse su rol).
-- Mensaje de catálogo para **fallo de red en el login web** (hoy se muestra MSG-01; MSG-02 es específico del móvil).
+- ~~Mensaje para `failed-precondition`~~ → resuelto: la UI deshabilita baja y cambio de rol del propio admin (nunca se dispara).
+- ~~Mensaje para fallo de red en login web~~ → resuelto con **MSG-18** (genérico, acordado).
+- **Validación de formularios sin mensajes de catálogo** (acordado): ayudas de formato fijas por campo (`aria-describedby`), marcado `aria-invalid` y botón Guardar bloqueado.
 - Vacíos de esquema: PK de `conciliaciones` (`periodo`) colisiona entre `tipo` despachos/gastos; HU-11 pide "fecha de atención" no definida en `notificaciones`; `telefono` (solo Admin) no es restringible por campo en reglas.
 - Bloqueo de cierre de sesión con registros pendientes de sync (sync-protocol §5) → Sprint 3 (HU-08).
 
@@ -128,10 +132,12 @@ Al integrar cada PR y borrar su rama, GitHub retargetea el siguiente automática
 - **`@firebase/rules-unit-testing` 5.x** (no 6.x): la 6 exige Node ≥ 24; CI y runtime usan Node 20.
 - Las pruebas de reglas/integración **borran los datos** del emulador y necesitan los puertos libres (cerrar `firebase emulators:start` antes).
 - `10.0.2.2` solo funciona en Android Emulator, no en dispositivo físico.
+- **Bug corregido (estaba desde el Sprint 1):** el emulador de Functions envuelve `firebase-admin` en un proxy donde `admin.firestore.FieldValue` es `undefined`; `gestionarUsuario` fallaba con `internal` en el emulador (el alta se revertía y la edición dejaba Auth actualizado sin Firestore). Usar siempre `import { FieldValue } from "firebase-admin/firestore"`.
+- **Lección de pruebas:** las pruebas de integración de Functions (`npm run test:integration` en `firebase/functions`) ejecutan el TypeScript con Vitest y **no** pasan por el runtime del emulador; por eso no detectaron el bug anterior. La suite de integración web sí invoca la función real en el emulador y debe ejecutarse antes de integrar cambios en Functions.
 - **Versiones web fijadas por Node 20 (CI):** vite 6, vitest 3, jsdom 26, TypeScript 5.9 (vitest 5 / jsdom 30 exigen Node ≥ 22.22). `react-router-dom` 7 con React 18.
 - Dependencias web adicionales aprobadas en Sprint 2: `@types/react`, `@types/react-dom`, `@testing-library/dom` (peer de RTL 16), `@vitest/coverage-v8`.
 
 ---
 
 ## 6. Objetivo de Arranque Sugerido (siguiente paso)
-- **HU-02 web + HU-09:** pantallas de gestión de usuarios (MSG-17) y de flota (MSG-09 con transacción) sobre la base web.
+- **HU-09 + `registrarRechazo`:** flota con MSG-09 (transacción), baja lógica y auditoría de `PERMISSION_DENIED`.

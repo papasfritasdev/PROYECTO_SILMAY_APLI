@@ -15,7 +15,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
-    "test:integration": "firebase emulators:exec --only auth,firestore --project silmay-dev \"vitest run -c vitest.integration.config.ts\""
+    "test:integration": "npm --prefix ../firebase/functions run build && firebase emulators:exec --only auth,firestore,functions --project silmay-dev \"vitest run -c vitest.integration.config.ts\""
   },
   "dependencies": {
     "firebase": "^12.19.0",

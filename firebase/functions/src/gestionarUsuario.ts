@@ -1,6 +1,9 @@
 import { randomUUID } from "node:crypto";
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
+// Import modular: el emulador de Functions envuelve `firebase-admin` en un proxy donde
+// `admin.firestore.FieldValue` es undefined; `firebase-admin/firestore` no se ve afectado.
+import { FieldValue } from "firebase-admin/firestore";
 import {
   esRolValido,
   esCedulaEcuatorianaValida,
@@ -159,7 +162,7 @@ function registrarAuditoria(
     documentoId,
     usuarioId,
     detalle,
-    fecha: admin.firestore.FieldValue.serverTimestamp()
+    fecha: FieldValue.serverTimestamp()
   });
 }
 

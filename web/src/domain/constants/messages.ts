@@ -22,7 +22,8 @@ export const APP_MESSAGES = {
   'MSG-14': 'Tiene una jornada abierta. Finalícela antes de iniciar otra.',
   'MSG-15': 'Registre un comentario para marcar el registro como Observado.',
   'MSG-16': 'Ya existe un registro con ese valor en el catálogo.',
-  'MSG-17': 'Ya existe un usuario registrado con ese correo o cédula.'
+  'MSG-17': 'Ya existe un usuario registrado con ese correo o cédula.',
+  'MSG-18': 'No se pudo completar la operación. Intente nuevamente.'
 } as const;
 
 export type CodigoMensaje = keyof typeof APP_MESSAGES;

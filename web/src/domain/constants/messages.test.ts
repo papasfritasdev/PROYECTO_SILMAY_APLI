@@ -13,7 +13,7 @@ function leerCatalogoOficial(): Record<string, string> {
 describe('Catálogo de mensajes web', () => {
   it('coincide literalmente con docs/messages-catalog.md (sin faltantes ni sobrantes)', () => {
     const oficial = leerCatalogoOficial();
-    expect(Object.keys(oficial).length).toBeGreaterThanOrEqual(17);
+    expect(Object.keys(oficial).length).toBeGreaterThanOrEqual(18);
     expect(APP_MESSAGES).toEqual(oficial);
   });
 

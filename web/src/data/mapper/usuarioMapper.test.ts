@@ -48,6 +48,10 @@ describe('mapearErrorAuth', () => {
     expect(mapearErrorAuth(new FirebaseError('auth/user-disabled', 'x'))).toBe('MSG-03');
   });
 
+  it('fallo de red → MSG-18', () => {
+    expect(mapearErrorAuth(new FirebaseError('auth/network-request-failed', 'x'))).toBe('MSG-18');
+  });
+
   it('credenciales inválidas, usuario inexistente o error desconocido → MSG-01 opaco', () => {
     expect(mapearErrorAuth(new FirebaseError('auth/invalid-credential', 'x'))).toBe('MSG-01');
     expect(mapearErrorAuth(new FirebaseError('auth/user-not-found', 'x'))).toBe('MSG-01');

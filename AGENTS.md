@@ -18,7 +18,7 @@ Antes de responder, planificar o generar código, debes consultar el documento r
 - `docs/cloud-functions.md`: Lógica centralizada, triggers idempotentes y agregaciones periódicas.
 - `docs/sync-protocol.md`: Protocolo Offline-First, generación de UUID v4 y métrica TES >= 99%.
 - `docs/business-formulas.md`: Fórmulas matemáticas de horas brutas, horas efectivas, delta horómetro, conciliación P_reg y semáforo preventivo.
-- `docs/messages-catalog.md`: Textos literales obligatorios para UI y validaciones (`MSG-01` a `MSG-17`).
+- `docs/messages-catalog.md`: Textos literales obligatorios para UI y validaciones (`MSG-01` a `MSG-18`).
 - `docs/playbook/04-ai-guardrails.md`: Prohibiciones técnicas y criterios de la Definición de Terminado (DoD).
 - `docs/specs/sprint-XX-specs.md`: Criterios de Aceptación Gherkin del sprint en curso.
 

@@ -52,7 +52,7 @@ Detalle de archivos en el monorepo listos para consumo o extensión:
 - [ ] Criterios Gherkin verificados y validados.
 - [ ] Cobertura de pruebas unitarias en Dominio: **[XX.X]%** (≥ 70% exigido).
 - [ ] Regla de dependencias de Clean Architecture validada (cero imports de SDKs en Dominio).
-- [ ] Catálogo de mensajes verificado: todos los textos corresponden a `MSG-01` .. `MSG-17`.
+- [ ] Catálogo de mensajes verificado: todos los textos corresponden a `MSG-01` .. `MSG-18`.
 - [ ] Cero credenciales privadas o secretos versionados en Git.
 - [ ] Pipeline de CI en GitHub Actions en estado verde.
 
