@@ -1,0 +1,161 @@
+name: SILMAY Monorepo CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ----------------------------------------------------------------------------
+  # Job 1: Verificación de Reglas de Oro y Guardrails de Arquitectura Limpia
+  # ----------------------------------------------------------------------------
+  architecture-guardrails:
+    name: Clean Architecture Guardrails
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Verificar regla de cero secretos versionados
+        run: |
+          echo "Verificando que no existan secretos versionados..."
+          if git ls-files | grep -E '(\.env|google-services\.json|service-account-key\.json)'; then
+            echo "::error::Se detectaron archivos de credenciales o .env versionados en Git."
+            exit 1
+          fi
+          echo "Política de Cero Secretos: OK"
+
+      - name: Verificar independencia de frameworks en capa Domain (Android)
+        run: |
+          echo "Verificando imports prohibidos en ec.silmay.app.domain..."
+          DOMAIN_DIR="android/app/src/main/java/ec/silmay/app/domain"
+          if [ -d "$DOMAIN_DIR" ]; then
+            FORBIDDEN_IMPORTS=$(grep -rnE 'import (android\.|androidx\.compose\.|com\.google\.firebase\.)' "$DOMAIN_DIR" || true)
+            if [ -n "$FORBIDDEN_IMPORTS" ]; then
+              echo "::error::Clean Architecture violada. La capa domain contiene imports prohibidos:"
+              echo "$FORBIDDEN_IMPORTS"
+              exit 1
+            fi
+          fi
+          echo "Guardrail Clean Architecture Domain: OK"
+
+  # ----------------------------------------------------------------------------
+  # Job 2: Microservicios Backend Serverless (Firebase Functions)
+  # ----------------------------------------------------------------------------
+  functions-ci:
+    name: Backend Functions (Node.js)
+    needs: architecture-guardrails
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: firebase/functions
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Verificar si Functions está inicializado
+        id: check-functions
+        run: |
+          if [ -f "firebase/functions/package.json" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Configurar Node.js 20 LTS
+        if: steps.check-functions.outputs.exists == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: firebase/functions/package-lock.json
+
+      - name: Instalar dependencias
+        if: steps.check-functions.outputs.exists == 'true'
+        run: npm ci
+
+      - name: Compilar TypeScript
+        if: steps.check-functions.outputs.exists == 'true'
+        run: npm run build
+
+      - name: Ejecutar pruebas unitarias
+        if: steps.check-functions.outputs.exists == 'true'
+        run: npm test
+
+  # ----------------------------------------------------------------------------
+  # Job 3: Aplicación Móvil Android (Kotlin / Jetpack Compose)
+  # ----------------------------------------------------------------------------
+  android-ci:
+    name: Mobile Android (Kotlin)
+    needs: architecture-guardrails
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Verificar si Android está inicializado
+        id: check-android
+        run: |
+          if [ -f "android/gradlew" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Configurar JDK 17
+        if: steps.check-android.outputs.exists == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Ejecutar pruebas unitarias de Android
+        if: steps.check-android.outputs.exists == 'true'
+        run: ./gradlew testDebugUnitTest --no-daemon
+
+  # ----------------------------------------------------------------------------
+  # Job 4: Plataforma Web Administrativa (React / Vite)
+  # ----------------------------------------------------------------------------
+  web-ci:
+    name: Web React Platform
+    needs: architecture-guardrails
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+
+      - name: Verificar si Web está inicializado
+        id: check-web
+        run: |
+          if [ -f "web/package.json" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Configurar Node.js 20 LTS
+        if: steps.check-web.outputs.exists == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Instalar dependencias
+        if: steps.check-web.outputs.exists == 'true'
+        run: npm ci
+
+      - name: Compilar Web App
+        if: steps.check-web.outputs.exists == 'true'
+        run: npm run build

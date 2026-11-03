@@ -48,6 +48,8 @@ node_modules/
 */node_modules/
 dist/
 */dist/
+lib/
+*/lib/
 
 # Logs y depuración
 npm-debug.log*
