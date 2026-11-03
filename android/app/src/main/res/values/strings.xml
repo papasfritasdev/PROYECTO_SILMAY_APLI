@@ -18,4 +18,15 @@
     <string name="msg_14">Tiene una jornada abierta. Finalícela antes de iniciar otra.</string>
     <string name="msg_15">Registre un comentario para marcar el registro como Observado.</string>
     <string name="msg_16">Ya existe un registro con ese valor en el catálogo.</string>
+
+    <!-- Menú principal por rol (HU-01a CA1) -->
+    <string name="menu_titulo_operador">Menú del Operador</string>
+    <string name="menu_titulo_supervisor">Menú del Supervisor</string>
+    <string name="menu_zona">Zona asignada: %1$s</string>
+    <string name="menu_modulo_jornada">Jornada de maquinaria</string>
+    <string name="menu_modulo_despachos">Despachos de pétreos</string>
+    <string name="menu_modulo_gastos">Gastos diarios</string>
+    <string name="menu_modulo_registros_zona">Registros de la zona</string>
+    <string name="menu_modulo_proximamente">Disponible en próximos sprints</string>
+    <string name="menu_cerrar_sesion">Cerrar sesión</string>
 </resources>

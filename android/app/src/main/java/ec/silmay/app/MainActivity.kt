@@ -8,10 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import ec.silmay.app.presentation.login.LoginScreen
-import ec.silmay.app.presentation.login.LoginViewModel
+import ec.silmay.app.presentation.navigation.SilmayNavHost
 import ec.silmay.app.ui.theme.SilmayTheme
 
 @AndroidEntryPoint
@@ -25,13 +23,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val loginViewModel: LoginViewModel = hiltViewModel()
-                    LoginScreen(
-                        viewModel = loginViewModel,
-                        onLoginSuccess = { sesion ->
-                            // Navegación al dashboard según rol (operador / supervisor)
-                        }
-                    )
+                    SilmayNavHost()
                 }
             }
         }
