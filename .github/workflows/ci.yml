@@ -44,6 +44,20 @@ jobs:
           fi
           echo "Guardrail Clean Architecture Domain: OK"
 
+      - name: Verificar independencia de frameworks en capa Domain (Web)
+        run: |
+          echo "Verificando imports prohibidos en web/src/domain..."
+          WEB_DOMAIN_DIR="web/src/domain"
+          if [ -d "$WEB_DOMAIN_DIR" ]; then
+            FORBIDDEN_IMPORTS=$(grep -rnE "from ['\"](react|react-dom|react-router-dom|firebase)" "$WEB_DOMAIN_DIR" --include=*.ts --include=*.tsx | grep -v '\.test\.ts' || true)
+            if [ -n "$FORBIDDEN_IMPORTS" ]; then
+              echo "::error::Clean Architecture violada. web/src/domain contiene imports prohibidos:"
+              echo "$FORBIDDEN_IMPORTS"
+              exit 1
+            fi
+          fi
+          echo "Guardrail Clean Architecture Domain Web: OK"
+
   # ----------------------------------------------------------------------------
   # Job 2: Microservicios Backend Serverless (Firebase Functions)
   # ----------------------------------------------------------------------------
