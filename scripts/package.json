@@ -4,7 +4,9 @@
   "description": "Scripts operativos y de bootstrapping para el Sistema SILMAY",
   "scripts": {
     "crear-admin:local": "tsx crear-admin-inicial.ts --local",
-    "crear-admin:prod": "tsx crear-admin-inicial.ts --prod"
+    "crear-admin:prod": "tsx crear-admin-inicial.ts --prod",
+    "sembrar-catalogos:local": "tsx sembrar-catalogos.ts --local",
+    "sembrar-catalogos:prod": "tsx sembrar-catalogos.ts --prod"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
