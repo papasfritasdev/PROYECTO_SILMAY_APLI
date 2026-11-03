@@ -24,6 +24,7 @@ Este catálogo define los textos literales que deben desplegarse en pantalla ant
 | **MSG-14** | `Tiene una jornada abierta. Finalícela antes de iniciar otra.` | Intento de abrir una nueva jornada cuando el operador ya tiene una en estado `abierta`. | M1 (RF-06 / CU-03) |
 | **MSG-15** | `Registre un comentario para marcar el registro como Observado.` | Intento de guardar una observación financiera en contabilidad sin redactar justificación. | M5 (RF-24 / CU-09) |
 | **MSG-16** | `Ya existe un registro con ese valor en el catálogo.` | Duplicidad de nombre al agregar un nuevo ítem en `catalogos/{tipo}/items`. | M8 (RF-32 / CU-13) |
+| **MSG-17** | `Ya existe un usuario registrado con ese correo o cédula.` | Duplicidad de `email` o `cedula` al crear o actualizar una cuenta en `usuarios` (`gestionarUsuario` responde `already-exists`). Agregado en Sprint 2 por acuerdo del equipo (HU-02 CA2). | M7 (RF-05 / CU-11) |
 
 ---
 

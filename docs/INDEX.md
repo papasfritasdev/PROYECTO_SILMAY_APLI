@@ -11,7 +11,7 @@ Este índice define la ubicación y propósito de cada especificación técnica 
 - `docs/cloud-functions.md`: Microservicios serverless en TypeScript: triggers reactivos (`procesarJornada`, `registrarAuditoria`), funciones HTTPS callables (`gestionarUsuario`, `consolidarPeriodo`) y cron de respaldo mensual.
 - `docs/sync-protocol.md`: Ciclo de vida Offline-First, cola de mutaciones FIFO en disco, reintentos con backoff exponencial, prevención de colisiones por UUID v4 y medición de la métrica TES ≥ 99.0%.
 - `docs/business-formulas.md`: Fórmulas matemáticas oficiales de cálculo: Horas Efectivas, Delta Horómetro, Conciliación `P_reg`, Consolidación de Resultado Operativo y Semáforo Preventivo.
-- `docs/messages-catalog.md`: Catálogo oficial e inmutable de mensajes normalizados de validación e interfaz (`MSG-01` a `MSG-16`).
+- `docs/messages-catalog.md`: Catálogo oficial e inmutable de mensajes normalizados de validación e interfaz (`MSG-01` a `MSG-17`).
 - `docs/setup-environment.md`: Configuración de proyectos aislados (`silmay-dev` y `silmay-prod`), emuladores locales de Firebase Suite y variables de entorno.
 
 ---

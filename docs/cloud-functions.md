@@ -90,6 +90,21 @@ export const procesarJornada = functions.region('southamerica-east1').firestore
 
 *(Implementación de lógica serverless para control de turnos y alertas).*
 
+### 2.2 Callable `gestionarUsuario` (HT-04, HU-02) — Contrato para clientes
+
+- **Crear:** payload sin `uid`; `password` obligatoria (≥ 8 caracteres con letras y números; símbolos permitidos).
+- **Actualizar / baja lógica / reactivar:** payload con `uid`; `password` opcional. `estado: false` deshabilita la cuenta en Auth y revoca sus refresh tokens (también al cambiar de rol).
+- **Campos obligatorios:** `nombres`, `cedula` (Módulo 10), `telefono` (EC: `09XXXXXXXX`, fijo `0[2-7]XXXXXXX` o `+593…`), `email`, `rol`, `zonaAsignada`, `cargo`.
+- **Persistencia:** perfil en `usuarios/{uid}` + entrada en `auditoria/{uuidV4}` en un único batch atómico (`CREATE` / `UPDATE` con `detalle.antes`, `detalle.despues`, `bajaLogica`, `reactivacion`, `cambioDeRol`).
+
+| Código `HttpsError` | Causa | Mensaje a mostrar en UI |
+| :--- | :--- | :--- |
+| `unauthenticated` / `permission-denied` | Sin sesión o rol distinto de `admin` | `MSG-13` |
+| `already-exists` + `details.campo` (`'email'` \| `'cedula'`) | Correo o cédula ya registrados en `usuarios` | `MSG-17` |
+| `invalid-argument` | Payload inválido | Validación de formulario en cliente (los textos del servidor son técnicos) |
+| `failed-precondition` | El admin intenta darse de baja o retirarse su propio rol | Pendiente de mensaje en catálogo |
+| `not-found` | `uid` inexistente al actualizar | — |
+
 ---
 
 ## 3. Garantías de Concurrencia e Idempotencia (RNF-11)

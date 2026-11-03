@@ -18,6 +18,7 @@
     <string name="msg_14">Tiene una jornada abierta. Finalícela antes de iniciar otra.</string>
     <string name="msg_15">Registre un comentario para marcar el registro como Observado.</string>
     <string name="msg_16">Ya existe un registro con ese valor en el catálogo.</string>
+    <string name="msg_17">Ya existe un usuario registrado con ese correo o cédula.</string>
 
     <!-- Menú principal por rol (HU-01a CA1) -->
     <string name="menu_titulo_operador">Menú del Operador</string>

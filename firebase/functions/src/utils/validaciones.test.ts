@@ -3,6 +3,8 @@ import {
   esCedulaEcuatorianaValida,
   esRolValido,
   esEmailValido,
+  esContrasenaValida,
+  esTelefonoEcuatorianoValido,
   ROLES_VALIDOS
 } from "./validaciones";
 
@@ -75,6 +77,45 @@ describe("Validaciones de Negocio SILMAY", () => {
       expect(esEmailValido("correo_sin_arroba")).toBe(false);
       expect(esEmailValido("correo@dominio")).toBe(false);
       expect(esEmailValido("")).toBe(false);
+    });
+  });
+  describe("esContrasenaValida (HU-02 CA1)", () => {
+    it("acepta 8+ caracteres con letras y números, con o sin símbolos", () => {
+      expect(esContrasenaValida("Silmay26")).toBe(true);
+      expect(esContrasenaValida("Silmay2026!Admin")).toBe(true);
+      expect(esContrasenaValida("contraseña1")).toBe(true);
+    });
+
+    it("rechaza contraseñas cortas, sin letras o sin dígitos", () => {
+      expect(esContrasenaValida("Abc1234")).toBe(false);
+      expect(esContrasenaValida("12345678")).toBe(false);
+      expect(esContrasenaValida("SoloLetras")).toBe(false);
+      expect(esContrasenaValida("!!!!!!!!")).toBe(false);
+    });
+
+    it("rechaza espacios en los extremos y valores no string", () => {
+      expect(esContrasenaValida(" Silmay2026")).toBe(false);
+      expect(esContrasenaValida("Silmay2026 ")).toBe(false);
+      expect(esContrasenaValida(undefined)).toBe(false);
+      expect(esContrasenaValida(12345678)).toBe(false);
+    });
+  });
+
+  describe("esTelefonoEcuatorianoValido", () => {
+    it("acepta celulares y fijos en formato nacional e internacional", () => {
+      expect(esTelefonoEcuatorianoValido("0991234567")).toBe(true);
+      expect(esTelefonoEcuatorianoValido("+593991234567")).toBe(true);
+      expect(esTelefonoEcuatorianoValido("032740123")).toBe(true);
+      expect(esTelefonoEcuatorianoValido("+59332740123")).toBe(true);
+      expect(esTelefonoEcuatorianoValido("099 123-4567")).toBe(true);
+    });
+
+    it("rechaza longitudes o prefijos inválidos", () => {
+      expect(esTelefonoEcuatorianoValido("099123456")).toBe(false);
+      expect(esTelefonoEcuatorianoValido("0891234567")).toBe(false);
+      expect(esTelefonoEcuatorianoValido("+5730012345678")).toBe(false);
+      expect(esTelefonoEcuatorianoValido("")).toBe(false);
+      expect(esTelefonoEcuatorianoValido(null)).toBe(false);
     });
   });
 });
