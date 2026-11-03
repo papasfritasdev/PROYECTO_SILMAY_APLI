@@ -5,5 +5,6 @@ if (!admin.apps.length) {
   admin.initializeApp();
 }
 
-// Exportación de microservicios serverless (HT-04)
-export { gestionarUsuario } from "./gestionarUsuario";
+// Exportación de microservicios serverless
+export { gestionarUsuario } from "./gestionarUsuario"; // HT-04, HU-02
+export { registrarRechazo } from "./registrarRechazo"; // HU-09 CA3, HT-07

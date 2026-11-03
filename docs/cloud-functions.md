@@ -14,6 +14,7 @@
 | **`consolidarPeriodo`** | Invocable (HTTPS callable) | `admin`, `contador` | Totaliza volúmenes de material, ingresos por cliente/método, horas máquina/operador, horas restadas y gastos por rubro. Calcula el Resultado Operativo y persiste en `consolidados`. | RF-25, RF-26, RNF-02 |
 | **`gestionarUsuario`** | Invocable (HTTPS callable) | `admin` | Crea/actualiza cuenta en Firebase Auth, asigna el Custom Claim `role`, persiste en colección `usuarios` y genera bitácora en `auditoria`. | RF-05, RNF-08 |
 | **`registrarAuditoria`** | Trigger `onDocumentWritten` en `maquinaria`, `catalogos`, `parametros` | Sistema (Automático) | Captura cambios administrativos y genera una entrada inmutable append-only con `serverTimestamp` en `auditoria`. | RNF-08 |
+| **`registrarRechazo`** | Invocable (HTTPS callable) | Cualquier usuario autenticado | Registra en `auditoria` los rechazos `PERMISSION_DENIED` de las Security Rules informados por los clientes, sin abrir la colección a escrituras de clientes. Agregada en Sprint 2 por acuerdo del equipo. | HU-09 CA3, HT-07, HU-08 CA3 |
 | **`respaldoMensual`** | Tarea cron programada (Pub/Sub) | Sistema (Schedule) | Ejecuta la exportación automatizada de todas las colecciones hacia un bucket seguro en Google Cloud Storage. | RNF-16 |
 
 ---
@@ -105,6 +106,13 @@ export const procesarJornada = functions.region('southamerica-east1').firestore
 | `failed-precondition` | El admin intenta darse de baja o retirarse su propio rol | No se dispara: la UI deshabilita esas acciones sobre la propia cuenta |
 | `not-found` | `uid` inexistente al actualizar | `MSG-18` |
 | `internal` / `unavailable` / red | Fallo inesperado | `MSG-18` |
+
+### 2.3 Callable `registrarRechazo` (HU-09 CA3, HT-07) — Contrato para clientes
+
+- **Payload:** `{ coleccion, documentoId, operacion, origen }` con `coleccion` ∈ las 12 colecciones canónicas, `operacion` ∈ `read | create | update | delete`, `origen` ∈ `web | android`.
+- **Escritura:** `auditoria/{uuidV4}` con `accion: 'PERMISSION_DENIED'`, `usuarioId` **tomado del token** (`context.auth.uid`, nunca del payload), `detalle: { operacion, origen, rol }` y `fecha: serverTimestamp()`.
+- **Uso en clientes:** de mejor esfuerzo; si la auditoría falla, el cliente igual muestra el error original (`MSG-13` en web).
+- **Limitación conocida:** cualquier usuario autenticado puede invocarla; un cliente malicioso podría generar entradas falsas *a su propio nombre* (no a nombre de terceros). Mitigación futura: límite de frecuencia por usuario.
 
 ---
 
