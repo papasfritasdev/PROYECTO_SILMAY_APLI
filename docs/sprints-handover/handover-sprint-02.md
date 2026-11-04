@@ -1,12 +1,12 @@
 # Informe de Relevo Técnico — Sprint 2: Modelo de Datos, Security Rules, Base Web y Datos Maestros
 
 > **ESTADO: EN PROGRESO (documento vivo).** Se actualiza al cerrar cada historia o PR.
-> Última actualización: 04/11/2026 — tras HT-07 (persistencia Android y sync, PR #9).
+> Última actualización: 04/11/2026 — tras HT-12 (respaldo mensual, PR #10). Todas las historias del sprint tienen código; falta Fase 0 y el cierre.
 
 - **Fecha de Cierre:** — (sprint en curso)
 - **Desarrollador Responsable:** Alejandro (`AlejandroR9AlphaCore`)
 - **Asistente IA Utilizado:** Claude (Claude Code)
-- **Puntos de Historia Completados:** 25 / 27 Pts (HT-05, HT-07, HT-08, HU-01b, HU-02, HU-09)
+- **Puntos de Historia Completados:** 27 / 27 Pts con código (HT-05, HT-07, HT-08, HT-12, HU-01b, HU-02, HU-09) · DoD bloqueado por Fase 0
 
 ---
 
@@ -20,7 +20,7 @@
 | HU-01b | Usuario | Inicio de sesión por rol en web | 1 | Código completo (CA1–CA3) · pendiente prueba manual | #6 |
 | HU-09 | Usuario | Gestión de maquinaria y volquetas | 3 | Código completo (CA1–CA3) · pendiente prueba manual | #8 |
 | HT-07 | Arquitectura | Capa de persistencia local y sync | 8 | Código completo (§1–§4) · verificado en Android Emulator + Emulator Suite | #9 |
-| HT-12 | Infraestructura | Respaldo mensual de Firestore | 2 | Pendiente (validación real imposible sin nube) | — |
+| HT-12 | Infraestructura | Respaldo mensual de Firestore | 2 | Código + runbook completos · restauración **no validada** (sin nube) | #10 |
 
 ### Deuda del Sprint 1 cerrada durante este sprint (no suma puntos)
 
@@ -35,9 +35,11 @@
 
 Validación manual P1–P11 (guía en el historial del equipo) **aprobada** por el desarrollador sobre Android Emulator + Firebase Emulator Suite.
 
+**Guía de pruebas manuales del Sprint 2 (todas las historias):** `docs/sprints-handover/guia-pruebas-manuales-sprint-02.md` — pendiente de ejecutar por el desarrollador.
+
 ### Orden de integración de PRs (apilados)
 
-`#3 (feature/sp2-security-rules → develop)` → `#4 (feature/sp1-cierre-brechas)` → `#5 (feature/sp2-gestion-usuarios)` → `#6 (feature/sp2-web-base)` → `#7 (feature/sp2-usuarios-web)` → `#8 (feature/sp2-maquinaria)` → `#9 (feature/sp2-persistencia-android)`.
+`#3 (feature/sp2-security-rules → develop)` → `#4 (feature/sp1-cierre-brechas)` → `#5 (feature/sp2-gestion-usuarios)` → `#6 (feature/sp2-web-base)` → `#7 (feature/sp2-usuarios-web)` → `#8 (feature/sp2-maquinaria)` → `#9 (feature/sp2-persistencia-android)` → `#10 (feature/sp2-respaldo-firestore)`.
 Al integrar cada PR y borrar su rama, GitHub retargetea el siguiente automáticamente. **El merge lo realiza el compañero tras su revisión.**
 
 ---
@@ -74,6 +76,7 @@ Al integrar cada PR y borrar su rama, GitHub retargetea el siguiente automática
   - Features: `features/maquinaria/MaquinariaPage.tsx`, `MaquinaFormulario.tsx` (próximo mantenimiento calculado en vivo)
   - Pruebas: `src/test/emuladores.ts` (utilidades compartidas de integración)
 - **Functions:** `firebase/functions/src/registrarRechazo.ts` (callable, autor desde el token)
+- **HT-12:** `firebase/functions/src/respaldoMensual.ts` (cron + lógica pura `ejecutarRespaldo`), `respaldoMensual.test.ts`; dependencia directa `@google-cloud/firestore@^7.11.6` (ya venía como opcional de `firebase-admin`); `docs/runbooks/restauracion-firestore.md`; `docs/cloud-functions.md` §2.4
 - **Android:** `res/xml/data_extraction_rules.xml`, `res/xml/backup_rules.xml` (exclusión total)
 - **HT-07 (`android/app/src/main/java/ec/silmay/app/`):**
   - Dominio (Kotlin puro): `domain/model/ColeccionOperativa.kt`, `domain/model/MetadatosControl.kt` (6 campos de control, claves reservadas), `domain/sync/UuidV4.kt` (validación + `GeneradorUuid`/`Reloj`), `domain/sync/ResolucionPendiente.kt`, `domain/usecase/GuardarRegistroOperativoUseCase.kt`, contratos `RegistroOperativoRepository`, `DispositivoRepository`, `AuditoriaRechazosRepository`
@@ -113,7 +116,7 @@ Al integrar cada PR y borrar su rama, GitHub retargetea el siguiente automática
 | Android unitarias | `cd android; .\gradlew testDebugUnitTest` | 75/75 |
 | Android instrumentadas | `.\gradlew connectedDebugAndroidTest` (Android Emulator + Auth/Firestore/Functions emulator) | 3/3 (HT-07: 50 mutaciones offline + cierre + FIFO; rechazo auditado tras reinicio) |
 | Android lint | `.\gradlew lintDebug` | 0 errores · 50 advertencias (ver §5.1) |
-| Functions unitarias | `cd firebase\functions; npm test` | 28/28 |
+| Functions unitarias | `cd firebase\functions; npm test` | 35/35 |
 | Functions integración | `npm run test:integration` (Auth + Firestore Emulator) | 13/13 |
 | Security Rules | `npm run test:rules` (Firestore Emulator) | 73/73 |
 | Web unitarias + componentes | `cd web; npm test` / `npm run coverage` | 110/110 · dominio 100% |
@@ -138,7 +141,8 @@ Al integrar cada PR y borrar su rama, GitHub retargetea el siguiente automática
   - El cierre forzado se prueba con `FirebaseFirestore.terminate()` + instancia nueva (misma base SQLite en disco). Falta una verificación manual con `adb shell am force-stop` y reinicio del dispositivo cuando exista una pantalla de captura (Sprint 3).
   - La cola FIFO, el backoff y la persistencia de las mutaciones son del SDK de Firestore (ADR-0004); la app solo agrega la bitácora de verificación. Una entrada se pierde (sin auditoría) si la app muere entre la escritura local y el `commit()` de la bitácora: ventana de milisegundos, de mejor esfuerzo.
   - Aún no hay consumidores: las pantallas de captura llegan en el Sprint 3 y deben usar `GuardarRegistroOperativoUseCase`.
-- **HT-12:** sin nube, la exportación/restauración solo puede probarse con mocks; documentar la limitación.
+- **HT-12 — pendiente de validar en la nube:** la exportación real, los permisos IAM y la restauración (runbook §5) no pueden ejecutarse en el emulador. Requiere el primer despliegue en `silmay-dev` (bucket, IAM, APIs de Scheduler/Pub/Sub, plan Blaze). La función se carga en el emulador de Functions pero se ignora por no existir emulador de Pub/Sub.
+- **HT-12 — decisión abierta:** las cuentas de Firebase Auth (y sus Custom Claims) no entran en el export de Firestore; respaldarlas con `firebase auth:export` (manual o automatizado) queda por decidir.
 
 ### 5.3 Decisiones abiertas con el equipo
 - ~~Mensaje para `failed-precondition`~~ → resuelto: la UI deshabilita baja y cambio de rol del propio admin (nunca se dispara).
