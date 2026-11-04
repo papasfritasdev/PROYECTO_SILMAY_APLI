@@ -1,12 +1,12 @@
 # Informe de Relevo Técnico — Sprint 2: Modelo de Datos, Security Rules, Base Web y Datos Maestros
 
 > **ESTADO: EN PROGRESO (documento vivo).** Se actualiza al cerrar cada historia o PR.
-> Última actualización: 03/11/2026 — tras HU-09 + `registrarRechazo` (PR #8).
+> Última actualización: 04/11/2026 — tras HT-07 (persistencia Android y sync, PR #9).
 
 - **Fecha de Cierre:** — (sprint en curso)
 - **Desarrollador Responsable:** Alejandro (`AlejandroR9AlphaCore`)
 - **Asistente IA Utilizado:** Claude (Claude Code)
-- **Puntos de Historia Completados:** 17 / 27 Pts (HT-05, HT-08, HU-01b, HU-02, HU-09)
+- **Puntos de Historia Completados:** 25 / 27 Pts (HT-05, HT-07, HT-08, HU-01b, HU-02, HU-09)
 
 ---
 
@@ -19,7 +19,7 @@
 | HT-08 | Arquitectura | Base de la plataforma web React | 3 | Código completo · Hosting solo configurado (sin nube) | #6 |
 | HU-01b | Usuario | Inicio de sesión por rol en web | 1 | Código completo (CA1–CA3) · pendiente prueba manual | #6 |
 | HU-09 | Usuario | Gestión de maquinaria y volquetas | 3 | Código completo (CA1–CA3) · pendiente prueba manual | #8 |
-| HT-07 | Arquitectura | Capa de persistencia local y sync | 8 | Pendiente | — |
+| HT-07 | Arquitectura | Capa de persistencia local y sync | 8 | Código completo (§1–§4) · verificado en Android Emulator + Emulator Suite | #9 |
 | HT-12 | Infraestructura | Respaldo mensual de Firestore | 2 | Pendiente (validación real imposible sin nube) | — |
 
 ### Deuda del Sprint 1 cerrada durante este sprint (no suma puntos)
@@ -37,7 +37,7 @@ Validación manual P1–P11 (guía en el historial del equipo) **aprobada** por 
 
 ### Orden de integración de PRs (apilados)
 
-`#3 (feature/sp2-security-rules → develop)` → `#4 (feature/sp1-cierre-brechas)` → `#5 (feature/sp2-gestion-usuarios)` → `#6 (feature/sp2-web-base)` → `#7 (feature/sp2-usuarios-web)` → `#8 (feature/sp2-maquinaria)`.
+`#3 (feature/sp2-security-rules → develop)` → `#4 (feature/sp1-cierre-brechas)` → `#5 (feature/sp2-gestion-usuarios)` → `#6 (feature/sp2-web-base)` → `#7 (feature/sp2-usuarios-web)` → `#8 (feature/sp2-maquinaria)` → `#9 (feature/sp2-persistencia-android)`.
 Al integrar cada PR y borrar su rama, GitHub retargetea el siguiente automáticamente. **El merge lo realiza el compañero tras su revisión.**
 
 ---
@@ -75,6 +75,12 @@ Al integrar cada PR y borrar su rama, GitHub retargetea el siguiente automática
   - Pruebas: `src/test/emuladores.ts` (utilidades compartidas de integración)
 - **Functions:** `firebase/functions/src/registrarRechazo.ts` (callable, autor desde el token)
 - **Android:** `res/xml/data_extraction_rules.xml`, `res/xml/backup_rules.xml` (exclusión total)
+- **HT-07 (`android/app/src/main/java/ec/silmay/app/`):**
+  - Dominio (Kotlin puro): `domain/model/ColeccionOperativa.kt`, `domain/model/MetadatosControl.kt` (6 campos de control, claves reservadas), `domain/sync/UuidV4.kt` (validación + `GeneradorUuid`/`Reloj`), `domain/sync/ResolucionPendiente.kt`, `domain/usecase/GuardarRegistroOperativoUseCase.kt`, contratos `RegistroOperativoRepository`, `DispositivoRepository`, `AuditoriaRechazosRepository`
+  - Datos: `data/repository/FirestoreRegistroOperativoRepository.kt` (`document(uuid).set()` + confirmación local por lectura de caché, MSG-04 ante disco lleno), `data/sync/BitacoraPendientes.kt`, `data/sync/ConciliadorSincronizacion.kt`, `data/repository/FunctionsAuditoriaRechazosRepository.kt` (`registrarRechazo`, `origen: 'android'`), `data/device/DispositivoRepositoryImpl.kt`, `data/sync/IdentificadoresSistema.kt`
+  - DI / arranque: `di/SyncModule.kt` (Functions en `southamerica-east1`, emulador 5001 en debug), `SilmayApp.kt` (inicia el conciliador)
+  - Dependencia: `firebase-functions` (BoM existente)
+  - Pruebas: 36 unitarias nuevas; instrumentada `src/androidTest/.../data/sync/ColaSincronizacionEmuladorTest.kt`
 - **Scripts (`scripts/`):** `sembrar-catalogos.ts` (idempotente con `create()`)
 - **Documentación:** `docs/messages-catalog.md` (+ MSG-17, MSG-18), `docs/cloud-functions.md` (§2.2 contrato de `gestionarUsuario`), rango MSG-01..MSG-17 en INDEX/AGENTS/CLAUDE/playbook
 
@@ -104,7 +110,8 @@ Al integrar cada PR y borrar su rama, GitHub retargetea el siguiente automática
 
 | Suite | Comando | Resultado |
 | :--- | :--- | :--- |
-| Android unitarias | `cd android; .\gradlew testDebugUnitTest` | 39/39 |
+| Android unitarias | `cd android; .\gradlew testDebugUnitTest` | 75/75 |
+| Android instrumentadas | `.\gradlew connectedDebugAndroidTest` (Android Emulator + Auth/Firestore/Functions emulator) | 3/3 (HT-07: 50 mutaciones offline + cierre + FIFO; rechazo auditado tras reinicio) |
 | Android lint | `.\gradlew lintDebug` | 0 errores · 50 advertencias (ver §5.1) |
 | Functions unitarias | `cd firebase\functions; npm test` | 28/28 |
 | Functions integración | `npm run test:integration` (Auth + Firestore Emulator) | 13/13 |
@@ -126,7 +133,11 @@ Al integrar cada PR y borrar su rama, GitHub retargetea el siguiente automática
 7. **PRs apilados sin CI:** el workflow solo corre en PRs hacia `develop`/`main`; los PRs #4–#8 (base = otra rama feature) tienen **0 checks**. Al retargetearse a `develop`, el cambio de base no dispara el workflow: hacer un push o re-ejecutarlo manualmente.
 
 ### 5.2 Pendientes de historias del Sprint 2
-- **HT-07:** reutilizar `registrarRechazo` (ya implementada, `docs/cloud-functions.md` §2.3) desde Android con `origen: 'android'`.
+- **HT-07 — alcance cubierto y límites:**
+  - Cubierto: solo **altas** (`create`) de `jornadas`/`despachos`/`gastos`. Las actualizaciones de una jornada abierta (HU-04, Sprint 3) necesitarán un método `actualizar` que conserve `uuid`/`createdAtClient` y no reescriba campos inmutables; la conciliación de rechazos de `update` no está implementada.
+  - El cierre forzado se prueba con `FirebaseFirestore.terminate()` + instancia nueva (misma base SQLite en disco). Falta una verificación manual con `adb shell am force-stop` y reinicio del dispositivo cuando exista una pantalla de captura (Sprint 3).
+  - La cola FIFO, el backoff y la persistencia de las mutaciones son del SDK de Firestore (ADR-0004); la app solo agrega la bitácora de verificación. Una entrada se pierde (sin auditoría) si la app muere entre la escritura local y el `commit()` de la bitácora: ventana de milisegundos, de mejor esfuerzo.
+  - Aún no hay consumidores: las pantallas de captura llegan en el Sprint 3 y deben usar `GuardarRegistroOperativoUseCase`.
 - **HT-12:** sin nube, la exportación/restauración solo puede probarse con mocks; documentar la limitación.
 
 ### 5.3 Decisiones abiertas con el equipo
@@ -146,6 +157,8 @@ Al integrar cada PR y borrar su rama, GitHub retargetea el siguiente automática
 - **`@firebase/rules-unit-testing` 5.x** (no 6.x): la 6 exige Node ≥ 24; CI y runtime usan Node 20.
 - Las pruebas de reglas/integración **borran los datos** del emulador y necesitan los puertos libres (cerrar `firebase emulators:start` antes).
 - `10.0.2.2` solo funciona en Android Emulator, no en dispositivo físico.
+- **`google-services.json` local:** el SDK de Functions valida el **formato** de la API key (`AIza` + 35 caracteres) antes de llamar, incluso contra el emulador. El placeholder anterior (`PLACEHOLDER…`) hacía fallar en silencio `registrarRechazo` desde Android; se cambió por una clave ficticia con formato válido (archivo no versionado, acordado con el desarrollador). Cualquier placeholder del equipo debe respetar ese formato.
+- **Pruebas instrumentadas de HT-07:** requieren `firebase emulators:start --only auth,firestore,functions` (tras `npm run build` en `firebase/functions`) y un AVD encendido; crean un operador nuevo por ejecución vía REST del emulador (`Bearer owner`). En la primera ejecución sobre un AVD recién arrancado la instrumentación terminó una vez con "Process crashed" sin traza en logcat; no se reprodujo en 4 ejecuciones posteriores.
 - **Bug corregido (estaba desde el Sprint 1):** el emulador de Functions envuelve `firebase-admin` en un proxy donde `admin.firestore.FieldValue` es `undefined`; `gestionarUsuario` fallaba con `internal` en el emulador (el alta se revertía y la edición dejaba Auth actualizado sin Firestore). Usar siempre `import { FieldValue } from "firebase-admin/firestore"`.
 - **Lección de pruebas:** las pruebas de integración de Functions (`npm run test:integration` en `firebase/functions`) ejecutan el TypeScript con Vitest y **no** pasan por el runtime del emulador; por eso no detectaron el bug anterior. La suite de integración web sí invoca la función real en el emulador y debe ejecutarse antes de integrar cambios en Functions.
 - **Versiones web fijadas por Node 20 (CI):** vite 6, vitest 3, jsdom 26, TypeScript 5.9 (vitest 5 / jsdom 30 exigen Node ≥ 22.22). `react-router-dom` 7 con React 18.

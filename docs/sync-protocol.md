@@ -42,6 +42,11 @@ Plataforma React recibe cambios vía TLS/WebSockets en tiempo real
 4. **Campos Segregados en Validación Contable:**
    * Las Security Rules permiten al rol `contador` modificar únicamente los campos `['estadoValidacion', 'validadoPor', 'fechaValidacion', 'comentarioValidacion']`[cite: 4]. El contador jamás puede alterar cantidades, valores USD ni horómetros capturados en campo[cite: 4, 5, 6].
 
+5. **Detección y auditoría de rechazos en Android (HT-07):**
+   * El `Task` de `set()` solo se completa con el acuse del servidor y su callback se pierde si la app se cierra antes; el SDK reenvía la mutación en la sesión siguiente y, si las reglas la rechazan, la descarta en silencio.
+   * Por eso cada alta confirmada en disco se anota en una bitácora local (`BitacoraPendientes`). El `ConciliadorSincronizacion` espera `waitForPendingWrites()` (que incluye escrituras de sesiones anteriores) y lee cada documento con `Source.SERVER`: si existe, se aceptó; si no existe o su lectura es denegada (las reglas solo permiten leer registros propios existentes), fue rechazado y se audita con la callable `registrarRechazo` (`origen: 'android'`).
+   * Se ejecuta al iniciar o restaurar la sesión y tras cada guardado; ante errores transitorios reintenta con backoff exponencial (30 s a 15 min).
+
 ---
 
 ## 4. Ciclo de Vida y Transición de Estados de la Jornada
