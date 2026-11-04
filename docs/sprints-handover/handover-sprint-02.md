@@ -35,6 +35,8 @@
 
 Validación manual P1–P11 (guía en el historial del equipo) **aprobada** por el desarrollador sobre Android Emulator + Firebase Emulator Suite.
 
+**Guía de pruebas manuales del Sprint 2 (todas las historias):** `docs/sprints-handover/guia-pruebas-manuales-sprint-02.md` — pendiente de ejecutar por el desarrollador.
+
 ### Orden de integración de PRs (apilados)
 
 `#3 (feature/sp2-security-rules → develop)` → `#4 (feature/sp1-cierre-brechas)` → `#5 (feature/sp2-gestion-usuarios)` → `#6 (feature/sp2-web-base)` → `#7 (feature/sp2-usuarios-web)` → `#8 (feature/sp2-maquinaria)` → `#9 (feature/sp2-persistencia-android)` → `#10 (feature/sp2-respaldo-firestore)`.
