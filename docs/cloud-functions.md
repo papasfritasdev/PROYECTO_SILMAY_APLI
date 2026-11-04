@@ -114,6 +114,15 @@ export const procesarJornada = functions.region('southamerica-east1').firestore
 - **Uso en clientes:** de mejor esfuerzo; si la auditoría falla, el cliente igual muestra el error original (`MSG-13` en web).
 - **Limitación conocida:** cualquier usuario autenticado puede invocarla; un cliente malicioso podría generar entradas falsas *a su propio nombre* (no a nombre de terceros). Mitigación futura: límite de frecuencia por usuario.
 
+### 2.4 Cron `respaldoMensual` (HT-12, RNF-16)
+
+- **Programación:** `0 3 1 * *` en `America/Guayaquil` (día 1 de cada mes, 03:00), región `southamerica-east1`, `retryConfig` de 3 reintentos (backoff mínimo 300 s), timeout 120 s.
+- **Acción:** `FirestoreAdminClient.exportDocuments` de la base `(default)` con `collectionIds: []` (todas las colecciones) hacia `gs://<bucket>/firestore/AAAA-MM-DDTHH-mm` (hora local; carpeta nueva por ejecución). La función solo **inicia** la operación de larga duración y registra su nombre en los logs; la exportación termina de forma asíncrona.
+- **Bucket:** `RESPALDOS_BUCKET` (variable de entorno, sin secretos) o, por defecto, `<projectId>-respaldos`, en `southamerica-east1`.
+- **Errores:** se relanzan para que Cloud Scheduler aplique los reintentos.
+- **Permisos e infraestructura, restauración y validación:** `docs/runbooks/restauracion-firestore.md`.
+- **Emulador:** se carga, pero no se ejecuta (no hay emulador de Pub/Sub ni de export); la lógica se prueba con dependencias simuladas en `respaldoMensual.test.ts`.
+
 ---
 
 ## 3. Garantías de Concurrencia e Idempotencia (RNF-11)
