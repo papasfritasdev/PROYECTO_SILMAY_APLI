@@ -63,6 +63,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.functions)
 
     // Hilt (Inyección de Dependencias)
     implementation(libs.hilt.android)
