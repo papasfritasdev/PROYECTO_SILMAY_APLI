@@ -75,7 +75,7 @@ jobs:
       - name: Verificar si Functions está inicializado
         id: check-functions
         run: |
-          if [ -f "firebase/functions/package.json" ]; then
+          if [ -f "package.json" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
@@ -118,7 +118,7 @@ jobs:
       - name: Verificar si Android está inicializado
         id: check-android
         run: |
-          if [ -f "android/gradlew" ]; then
+          if [ -f "gradlew" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
@@ -130,6 +130,46 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+
+      - name: Generar google-services.json placeholder para compilación en CI
+        if: steps.check-android.outputs.exists == 'true'
+        run: |
+          mkdir -p app
+          cat << 'EOF' > app/google-services.json
+          {
+            "project_info": {
+              "project_number": "123456789012",
+              "project_id": "silmay-dev",
+              "storage_bucket": "silmay-dev.appspot.com"
+            },
+            "client": [
+              {
+                "client_info": {
+                  "mobilesdk_app_id": "1:123456789012:android:abcdef123456",
+                  "android_client_info": {
+                    "package_name": "ec.silmay.app"
+                  }
+                },
+                "oauth_client": [],
+                "api_key": [
+                  {
+                    "current_key": "AIzaSyFakeDevApiKeyForEmulators12345"
+                  }
+                ],
+                "services": {
+                  "appinvite_service": {
+                    "other_platform_oauth_client": []
+                  }
+                }
+              }
+            ],
+            "configuration_version": "1"
+          }
+          EOF
+
+      - name: Permisos de ejecución en Gradle Wrapper
+        if: steps.check-android.outputs.exists == 'true'
+        run: chmod +x ./gradlew
 
       - name: Ejecutar pruebas unitarias de Android
         if: steps.check-android.outputs.exists == 'true'
@@ -152,7 +192,7 @@ jobs:
       - name: Verificar si Web está inicializado
         id: check-web
         run: |
-          if [ -f "web/package.json" ]; then
+          if [ -f "package.json" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
@@ -169,6 +209,10 @@ jobs:
       - name: Instalar dependencias
         if: steps.check-web.outputs.exists == 'true'
         run: npm ci
+
+      - name: Ejecutar pruebas unitarias Web
+        if: steps.check-web.outputs.exists == 'true'
+        run: npm test
 
       - name: Compilar Web App
         if: steps.check-web.outputs.exists == 'true'

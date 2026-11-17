@@ -3,6 +3,7 @@ package ec.silmay.app.presentation.menu
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,12 +12,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -48,8 +51,31 @@ private fun tituloPorRol(rol: Rol): Int = when (rol) {
 fun MenuPrincipalScreen(
     sesion: UsuarioSesion,
     onCerrarSesion: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    alertaPendientes: Int? = null,
+    onDescartarAlertaPendientes: () -> Unit = {},
+    onModuloClick: (Int) -> Unit = {},
+    esOnline: Boolean = true,
+    pendientesSync: Int = 0,
+    onForzarSincronizacion: () -> Unit = {}
 ) {
+    if (alertaPendientes != null) {
+        AlertDialog(
+            onDismissRequest = onDescartarAlertaPendientes,
+            title = {
+                Text(text = stringResource(R.string.alerta_pendientes_titulo))
+            },
+            text = {
+                Text(text = stringResource(R.string.alerta_pendientes_mensaje, alertaPendientes))
+            },
+            confirmButton = {
+                TextButton(onClick = onDescartarAlertaPendientes) {
+                    Text(text = stringResource(R.string.alerta_pendientes_boton))
+                }
+            }
+        )
+    }
+
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
         Column(
             modifier = Modifier
@@ -71,23 +97,73 @@ fun MenuPrincipalScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
+            // Indicadores reactivos de conectividad y sincronización (HU-08 CA1)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Card(
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (esOnline) MaterialTheme.colorScheme.primaryContainer
+                        else MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Text(
+                        text = if (esOnline) stringResource(R.string.sync_estado_online)
+                        else stringResource(R.string.sync_estado_offline),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (esOnline) MaterialTheme.colorScheme.onPrimaryContainer
+                        else MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
+
+                Card(
+                    onClick = onForzarSincronizacion,
+                    enabled = esOnline && pendientesSync > 0,
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (pendientesSync == 0) MaterialTheme.colorScheme.secondaryContainer
+                        else MaterialTheme.colorScheme.tertiaryContainer
+                    )
+                ) {
+                    Text(
+                        text = if (pendientesSync == 0) stringResource(R.string.sync_todo_sincronizado)
+                        else stringResource(R.string.sync_pendientes_formato, pendientesSync),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (pendientesSync == 0) MaterialTheme.colorScheme.onSecondaryContainer
+                        else MaterialTheme.colorScheme.onTertiaryContainer,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.height(8.dp))
 
             modulosPorRol(sesion.rol).forEach { modulo ->
+                val esHabilitado = modulo == R.string.menu_modulo_jornada || modulo == R.string.menu_modulo_despachos
                 Card(
+                    onClick = { if (esHabilitado) onModuloClick(modulo) },
+                    enabled = esHabilitado,
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        containerColor = if (esHabilitado) MaterialTheme.colorScheme.surfaceVariant
+                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
                     ),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
                             text = stringResource(modulo),
-                            style = MaterialTheme.typography.titleSmall
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = if (esHabilitado) FontWeight.Bold else FontWeight.Normal
                         )
                         Text(
-                            text = stringResource(R.string.menu_modulo_proximamente),
+                            text = if (esHabilitado) "Toca para ingresar al módulo"
+                            else stringResource(R.string.menu_modulo_proximamente),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

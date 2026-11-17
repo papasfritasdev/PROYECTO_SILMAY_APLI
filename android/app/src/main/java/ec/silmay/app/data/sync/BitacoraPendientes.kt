@@ -2,6 +2,9 @@ package ec.silmay.app.data.sync
 
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /** Registro escrito en este dispositivo cuya aceptación por el servidor aún no se verificó. */
 data class PendienteSync(
@@ -34,6 +37,7 @@ interface BitacoraPendientes {
     fun agregar(pendiente: PendienteSync)
     fun quitar(pendiente: PendienteSync)
     fun listar(): List<PendienteSync>
+    fun observar(): Flow<List<PendienteSync>>
 }
 
 class BitacoraPendientesPreferencias(
@@ -44,14 +48,24 @@ class BitacoraPendientesPreferencias(
         const val CLAVE_PENDIENTES = "pendientes"
     }
 
+    private val _pendientesFlow = MutableStateFlow<List<PendienteSync>>(emptyList())
+
+    init {
+        _pendientesFlow.value = listar()
+    }
+
+    override fun observar(): Flow<List<PendienteSync>> = _pendientesFlow.asStateFlow()
+
     @Synchronized
     override fun agregar(pendiente: PendienteSync) {
         guardar(leer() + pendiente.serializar())
+        _pendientesFlow.value = listar()
     }
 
     @Synchronized
     override fun quitar(pendiente: PendienteSync) {
         guardar(leer() - pendiente.serializar())
+        _pendientesFlow.value = listar()
     }
 
     @Synchronized

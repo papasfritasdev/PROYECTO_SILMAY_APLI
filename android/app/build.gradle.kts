@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.google.services)
+    alias(libs.plugins.kover)
 }
 
 android {
@@ -83,4 +84,20 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+}
+
+
+kover {
+    reports {
+        filters {
+            includes {
+                classes("ec.silmay.app.domain.*")
+            }
+        }
+        verify {
+            rule {
+                minBound(70)
+            }
+        }
+    }
 }

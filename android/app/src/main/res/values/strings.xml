@@ -31,4 +31,54 @@
     <string name="menu_modulo_registros_zona">Registros de la zona</string>
     <string name="menu_modulo_proximamente">Disponible en próximos sprints</string>
     <string name="menu_cerrar_sesion">Cerrar sesión</string>
+
+    <!-- Alerta de protección de cierre de sesión (HU-07 CA3 / RF-04) -->
+    <string name="alerta_pendientes_titulo">Registros pendientes de sincronización</string>
+    <string name="alerta_pendientes_mensaje">Tiene %1$d registro(s) pendiente(s) de subir a la nube. Conéctese a Internet para enviarlos antes de cerrar sesión y evitar la pérdida de datos.</string>
+    <string name="alerta_pendientes_boton">Entendido</string>
+
+    <!-- Módulo Jornada de Maquinaria (HU-04) -->
+    <string name="jornada_titulo_apertura">Apertura de Jornada</string>
+    <string name="jornada_titulo_cierre">Cierre de Jornada</string>
+    <string name="jornada_maquina">Maquinaria</string>
+    <string name="jornada_lugar">Frente / Lugar</string>
+    <string name="jornada_horometro_inicial">Horómetro Inicial</string>
+    <string name="jornada_horometro_final">Horómetro Final</string>
+    <string name="jornada_hora_inicio">Hora de Inicio</string>
+    <string name="jornada_hora_salida">Hora de Salida</string>
+    <string name="jornada_observaciones">Observaciones</string>
+    <string name="jornada_btn_iniciar">Iniciar Jornada</string>
+    <string name="jornada_btn_cerrar">Cerrar y Sellar Jornada</string>
+    <string name="jornada_deducciones_titulo">Tiempos Improductivos / Novedades</string>
+    <string name="jornada_btn_agregar_deduccion">Agregar Deducción / Falla</string>
+    <string name="jornada_motivo">Motivo</string>
+    <string name="jornada_duracion_horas">Duración (Horas)</string>
+    <string name="jornada_es_falla">¿Es avería o falla mecánica?</string>
+    <string name="jornada_severidad">Severidad</string>
+    <string name="jornada_descripcion_falla">Descripción detallada (mínimo 10 caracteres)</string>
+    <string name="jornada_volver">Volver al Menú</string>
+    <string name="jornada_guardado_exitoso">Jornada procesada y guardada en disco</string>
+
+    <!-- Módulo Despacho de Pétreos (HU-03) -->
+    <string name="despacho_titulo">Registro de Despacho</string>
+    <string name="despacho_material">Material Pétreo</string>
+    <string name="despacho_unidad">Unidad de Medida</string>
+    <string name="despacho_cantidad">Cantidad</string>
+    <string name="despacho_cliente">Cliente</string>
+    <string name="despacho_volqueta">Volqueta Asignada</string>
+    <string name="despacho_lugar">Frente de Extracción</string>
+    <string name="despacho_lugar_heredado">Frente de extracción: %1$s (Heredado de la jornada activa)</string>
+    <string name="despacho_metodo_cobro">Método de Cobro</string>
+    <string name="despacho_valor_usd">Valor Total (USD)</string>
+    <string name="despacho_btn_guardar">Guardar Despacho</string>
+    <string name="despacho_volver">Volver al Menú</string>
+    <string name="despacho_error_campos">Por favor complete todos los campos obligatorios con valores mayores a cero.</string>
+    <string name="despacho_guardado_exitoso">Despacho guardado exitosamente en el dispositivo</string>
+
+    <!-- Indicadores de Sincronización y Conectividad (HU-08 CA1) -->
+    <string name="sync_estado_online">En línea</string>
+    <string name="sync_estado_offline">Sin conexión (Modo avión)</string>
+    <string name="sync_todo_sincronizado">Todo sincronizado</string>
+    <string name="sync_pendientes_formato">%1$d pendiente(s) de sincronizar</string>
+    <string name="sync_btn_forzar">Sincronizar ahora</string>
 </resources>

@@ -182,4 +182,29 @@ class ConciliadorSincronizacionTest {
 
         assertTrue(bitacora.listar().isEmpty())
     }
+
+    @Test
+    fun `HU-08 CA1 - al restablecerse la red el networkMonitor dispara la conciliacion`() = runTest {
+        val flujoRed = kotlinx.coroutines.flow.MutableSharedFlow<Boolean>(replay = 1)
+        val networkMonitor = mockk<ec.silmay.app.domain.repository.NetworkMonitor>()
+        every { networkMonitor.esOnline } returns flujoRed
+        bitacora.agregar(aceptado)
+        enServidor(aceptado, existe = true)
+        every { auth.addAuthStateListener(any()) } returns Unit
+
+        val conciliador = ConciliadorSincronizacion(
+            firestore = firestore,
+            auth = auth,
+            bitacora = bitacora,
+            auditoria = auditoria,
+            alcance = backgroundScope,
+            networkMonitor = networkMonitor
+        )
+        conciliador.iniciar()
+
+        flujoRed.emit(true)
+        runCurrent()
+
+        assertTrue(bitacora.listar().isEmpty())
+    }
 }

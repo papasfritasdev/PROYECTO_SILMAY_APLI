@@ -14,6 +14,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import ec.silmay.app.R
+import ec.silmay.app.presentation.despacho.DespachoScreen
+import ec.silmay.app.presentation.despacho.DespachoViewModel
+import ec.silmay.app.presentation.jornada.AperturaJornadaScreen
+import ec.silmay.app.presentation.jornada.CierreJornadaScreen
+import ec.silmay.app.presentation.jornada.JornadaViewModel
 import ec.silmay.app.presentation.login.LoginScreen
 import ec.silmay.app.presentation.login.LoginViewModel
 import ec.silmay.app.presentation.menu.MenuPrincipalScreen
@@ -23,6 +29,8 @@ import ec.silmay.app.presentation.sesion.SesionViewModel
 object Rutas {
     const val LOGIN = "login"
     const val MENU = "menu"
+    const val JORNADA = "jornada"
+    const val DESPACHO = "despacho"
 }
 
 /**
@@ -65,12 +73,48 @@ fun SilmayNavHost(
         }
         composable(Rutas.MENU) {
             val sesion = (estado as? SesionUiState.Autenticada)?.sesion
+            val alertaPendientes by sesionViewModel.alertaPendientes.collectAsState()
+            val esOnline by sesionViewModel.esOnline.collectAsState()
+            val pendientesSync by sesionViewModel.pendientesSync.collectAsState()
             if (sesion != null) {
                 MenuPrincipalScreen(
                     sesion = sesion,
-                    onCerrarSesion = sesionViewModel::cerrarSesion
+                    alertaPendientes = alertaPendientes,
+                    onDescartarAlertaPendientes = sesionViewModel::limpiarAlertaPendientes,
+                    onCerrarSesion = sesionViewModel::cerrarSesion,
+                    onModuloClick = { moduloId ->
+                        when (moduloId) {
+                            R.string.menu_modulo_jornada -> navController.navigate(Rutas.JORNADA)
+                            R.string.menu_modulo_despachos -> navController.navigate(Rutas.DESPACHO)
+                        }
+                    },
+                    esOnline = esOnline,
+                    pendientesSync = pendientesSync,
+                    onForzarSincronizacion = sesionViewModel::forzarSincronizacion
                 )
             }
+        }
+        composable(Rutas.JORNADA) {
+            val jornadaViewModel: JornadaViewModel = hiltViewModel()
+            val jState by jornadaViewModel.uiState.collectAsState()
+            if (jState.jornadaActiva == null) {
+                AperturaJornadaScreen(
+                    viewModel = jornadaViewModel,
+                    onVolver = { navController.popBackStack() }
+                )
+            } else {
+                CierreJornadaScreen(
+                    viewModel = jornadaViewModel,
+                    onVolver = { navController.popBackStack() }
+                )
+            }
+        }
+        composable(Rutas.DESPACHO) {
+            val despachoViewModel: DespachoViewModel = hiltViewModel()
+            DespachoScreen(
+                viewModel = despachoViewModel,
+                onVolver = { navController.popBackStack() }
+            )
         }
     }
 }

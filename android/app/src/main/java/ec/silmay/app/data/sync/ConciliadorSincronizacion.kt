@@ -5,6 +5,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.Source
 import ec.silmay.app.domain.repository.AuditoriaRechazosRepository
+import ec.silmay.app.domain.repository.NetworkMonitor
 import ec.silmay.app.domain.repository.OperacionRechazada
 import ec.silmay.app.domain.sync.ResolucionPendiente
 import kotlinx.coroutines.CoroutineScope
@@ -35,6 +36,7 @@ class ConciliadorSincronizacion(
     private val bitacora: BitacoraPendientes,
     private val auditoria: AuditoriaRechazosRepository,
     private val alcance: CoroutineScope,
+    private val networkMonitor: NetworkMonitor? = null,
     private val esPermisoDenegado: (Exception) -> Boolean = ::esPermisoDenegadoFirestore
 ) {
     companion object {
@@ -49,6 +51,16 @@ class ConciliadorSincronizacion(
         if (!iniciado.compareAndSet(false, true)) return
 
         auth.addAuthStateListener { if (it.currentUser != null) solicitar() }
+
+        if (networkMonitor != null) {
+            alcance.launch {
+                networkMonitor.esOnline.collect { online ->
+                    if (online && auth.currentUser != null) {
+                        solicitar()
+                    }
+                }
+            }
+        }
 
         alcance.launch {
             var espera = REINTENTO_INICIAL_MS
