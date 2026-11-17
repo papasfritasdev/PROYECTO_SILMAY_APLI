@@ -3,6 +3,7 @@ package ec.silmay.app.presentation.menu
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -53,7 +54,10 @@ fun MenuPrincipalScreen(
     modifier: Modifier = Modifier,
     alertaPendientes: Int? = null,
     onDescartarAlertaPendientes: () -> Unit = {},
-    onModuloClick: (Int) -> Unit = {}
+    onModuloClick: (Int) -> Unit = {},
+    esOnline: Boolean = true,
+    pendientesSync: Int = 0,
+    onForzarSincronizacion: () -> Unit = {}
 ) {
     if (alertaPendientes != null) {
         AlertDialog(
@@ -92,6 +96,50 @@ fun MenuPrincipalScreen(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+
+            // Indicadores reactivos de conectividad y sincronización (HU-08 CA1)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Card(
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (esOnline) MaterialTheme.colorScheme.primaryContainer
+                        else MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Text(
+                        text = if (esOnline) stringResource(R.string.sync_estado_online)
+                        else stringResource(R.string.sync_estado_offline),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (esOnline) MaterialTheme.colorScheme.onPrimaryContainer
+                        else MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
+
+                Card(
+                    onClick = onForzarSincronizacion,
+                    enabled = esOnline && pendientesSync > 0,
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (pendientesSync == 0) MaterialTheme.colorScheme.secondaryContainer
+                        else MaterialTheme.colorScheme.tertiaryContainer
+                    )
+                ) {
+                    Text(
+                        text = if (pendientesSync == 0) stringResource(R.string.sync_todo_sincronizado)
+                        else stringResource(R.string.sync_pendientes_formato, pendientesSync),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = if (pendientesSync == 0) MaterialTheme.colorScheme.onSecondaryContainer
+                        else MaterialTheme.colorScheme.onTertiaryContainer,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 

@@ -3,13 +3,18 @@ package ec.silmay.app.presentation.sesion
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import ec.silmay.app.data.sync.ConciliadorSincronizacion
 import ec.silmay.app.domain.model.UsuarioSesion
+import ec.silmay.app.domain.repository.NetworkMonitor
+import ec.silmay.app.domain.repository.SincronizacionRepository
 import ec.silmay.app.domain.usecase.CerrarSesionResultado
 import ec.silmay.app.domain.usecase.CerrarSesionUseCase
 import ec.silmay.app.domain.usecase.ObtenerSesionActualUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -28,7 +33,10 @@ sealed interface SesionUiState {
 @HiltViewModel
 class SesionViewModel @Inject constructor(
     private val obtenerSesionActual: ObtenerSesionActualUseCase,
-    private val cerrarSesionUseCase: CerrarSesionUseCase
+    private val cerrarSesionUseCase: CerrarSesionUseCase,
+    private val networkMonitor: NetworkMonitor,
+    private val sincronizacionRepository: SincronizacionRepository,
+    private val conciliador: ConciliadorSincronizacion
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<SesionUiState>(SesionUiState.Verificando)
@@ -37,20 +45,39 @@ class SesionViewModel @Inject constructor(
     private val _alertaPendientes = MutableStateFlow<Int?>(null)
     val alertaPendientes: StateFlow<Int?> = _alertaPendientes.asStateFlow()
 
+    val esOnline: StateFlow<Boolean> = networkMonitor.esOnline
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), networkMonitor.estaConectado())
+
+    private val _pendientesSync = MutableStateFlow(0)
+    val pendientesSync: StateFlow<Int> = _pendientesSync.asStateFlow()
+
     fun limpiarAlertaPendientes() {
         _alertaPendientes.value = null
     }
 
     init {
         viewModelScope.launch {
-            _uiState.value = obtenerSesionActual()
-                ?.let { SesionUiState.Autenticada(it) }
-                ?: SesionUiState.SinSesion
+            val sesion = obtenerSesionActual()
+            _uiState.value = sesion?.let { SesionUiState.Autenticada(it) } ?: SesionUiState.SinSesion
+            if (sesion != null) {
+                sincronizacionRepository.observarPendientes(sesion.uid).collect {
+                    _pendientesSync.value = it
+                }
+            }
         }
     }
 
     fun onLoginExitoso(sesion: UsuarioSesion) {
         _uiState.value = SesionUiState.Autenticada(sesion)
+        viewModelScope.launch {
+            sincronizacionRepository.observarPendientes(sesion.uid).collect {
+                _pendientesSync.value = it
+            }
+        }
+    }
+
+    fun forzarSincronizacion() {
+        conciliador.solicitar()
     }
 
     fun cerrarSesion() {

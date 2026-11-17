@@ -74,4 +74,11 @@
     <string name="despacho_volver">Volver al Menú</string>
     <string name="despacho_error_campos">Por favor complete todos los campos obligatorios con valores mayores a cero.</string>
     <string name="despacho_guardado_exitoso">Despacho guardado exitosamente en el dispositivo</string>
+
+    <!-- Indicadores de Sincronización y Conectividad (HU-08 CA1) -->
+    <string name="sync_estado_online">En línea</string>
+    <string name="sync_estado_offline">Sin conexión (Modo avión)</string>
+    <string name="sync_todo_sincronizado">Todo sincronizado</string>
+    <string name="sync_pendientes_formato">%1$d pendiente(s) de sincronizar</string>
+    <string name="sync_btn_forzar">Sincronizar ahora</string>
 </resources>

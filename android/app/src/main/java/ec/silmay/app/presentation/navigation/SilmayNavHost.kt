@@ -74,6 +74,8 @@ fun SilmayNavHost(
         composable(Rutas.MENU) {
             val sesion = (estado as? SesionUiState.Autenticada)?.sesion
             val alertaPendientes by sesionViewModel.alertaPendientes.collectAsState()
+            val esOnline by sesionViewModel.esOnline.collectAsState()
+            val pendientesSync by sesionViewModel.pendientesSync.collectAsState()
             if (sesion != null) {
                 MenuPrincipalScreen(
                     sesion = sesion,
@@ -85,7 +87,10 @@ fun SilmayNavHost(
                             R.string.menu_modulo_jornada -> navController.navigate(Rutas.JORNADA)
                             R.string.menu_modulo_despachos -> navController.navigate(Rutas.DESPACHO)
                         }
-                    }
+                    },
+                    esOnline = esOnline,
+                    pendientesSync = pendientesSync,
+                    onForzarSincronizacion = sesionViewModel::forzarSincronizacion
                 )
             }
         }
