@@ -96,7 +96,7 @@ fun MenuPrincipalScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             modulosPorRol(sesion.rol).forEach { modulo ->
-                val esHabilitado = modulo == R.string.menu_modulo_jornada
+                val esHabilitado = modulo == R.string.menu_modulo_jornada || modulo == R.string.menu_modulo_despachos
                 Card(
                     onClick = { if (esHabilitado) onModuloClick(modulo) },
                     enabled = esHabilitado,
@@ -114,7 +114,7 @@ fun MenuPrincipalScreen(
                             fontWeight = if (esHabilitado) FontWeight.Bold else FontWeight.Normal
                         )
                         Text(
-                            text = if (esHabilitado) "Toca para abrir captura de turno"
+                            text = if (esHabilitado) "Toca para ingresar al módulo"
                             else stringResource(R.string.menu_modulo_proximamente),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant

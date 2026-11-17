@@ -15,6 +15,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import ec.silmay.app.R
+import ec.silmay.app.presentation.despacho.DespachoScreen
+import ec.silmay.app.presentation.despacho.DespachoViewModel
 import ec.silmay.app.presentation.jornada.AperturaJornadaScreen
 import ec.silmay.app.presentation.jornada.CierreJornadaScreen
 import ec.silmay.app.presentation.jornada.JornadaViewModel
@@ -28,6 +30,7 @@ object Rutas {
     const val LOGIN = "login"
     const val MENU = "menu"
     const val JORNADA = "jornada"
+    const val DESPACHO = "despacho"
 }
 
 /**
@@ -78,8 +81,9 @@ fun SilmayNavHost(
                     onDescartarAlertaPendientes = sesionViewModel::limpiarAlertaPendientes,
                     onCerrarSesion = sesionViewModel::cerrarSesion,
                     onModuloClick = { moduloId ->
-                        if (moduloId == R.string.menu_modulo_jornada) {
-                            navController.navigate(Rutas.JORNADA)
+                        when (moduloId) {
+                            R.string.menu_modulo_jornada -> navController.navigate(Rutas.JORNADA)
+                            R.string.menu_modulo_despachos -> navController.navigate(Rutas.DESPACHO)
                         }
                     }
                 )
@@ -99,6 +103,13 @@ fun SilmayNavHost(
                     onVolver = { navController.popBackStack() }
                 )
             }
+        }
+        composable(Rutas.DESPACHO) {
+            val despachoViewModel: DespachoViewModel = hiltViewModel()
+            DespachoScreen(
+                viewModel = despachoViewModel,
+                onVolver = { navController.popBackStack() }
+            )
         }
     }
 }

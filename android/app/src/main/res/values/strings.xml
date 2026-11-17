@@ -58,4 +58,20 @@
     <string name="jornada_descripcion_falla">Descripción detallada (mínimo 10 caracteres)</string>
     <string name="jornada_volver">Volver al Menú</string>
     <string name="jornada_guardado_exitoso">Jornada procesada y guardada en disco</string>
+
+    <!-- Módulo Despacho de Pétreos (HU-03) -->
+    <string name="despacho_titulo">Registro de Despacho</string>
+    <string name="despacho_material">Material Pétreo</string>
+    <string name="despacho_unidad">Unidad de Medida</string>
+    <string name="despacho_cantidad">Cantidad</string>
+    <string name="despacho_cliente">Cliente</string>
+    <string name="despacho_volqueta">Volqueta Asignada</string>
+    <string name="despacho_lugar">Frente de Extracción</string>
+    <string name="despacho_lugar_heredado">Frente de extracción: %1$s (Heredado de la jornada activa)</string>
+    <string name="despacho_metodo_cobro">Método de Cobro</string>
+    <string name="despacho_valor_usd">Valor Total (USD)</string>
+    <string name="despacho_btn_guardar">Guardar Despacho</string>
+    <string name="despacho_volver">Volver al Menú</string>
+    <string name="despacho_error_campos">Por favor complete todos los campos obligatorios con valores mayores a cero.</string>
+    <string name="despacho_guardado_exitoso">Despacho guardado exitosamente en el dispositivo</string>
 </resources>

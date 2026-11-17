@@ -11,6 +11,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import ec.silmay.app.BuildConfig
 import ec.silmay.app.data.device.DispositivoRepositoryImpl
+import ec.silmay.app.data.repository.DespachoRepositoryImpl
 import ec.silmay.app.data.repository.FirestoreRegistroOperativoRepository
 import ec.silmay.app.data.repository.FunctionsAuditoriaRechazosRepository
 import ec.silmay.app.data.repository.JornadaRepositoryImpl
@@ -22,6 +23,7 @@ import ec.silmay.app.data.sync.GeneradorUuidV4
 import ec.silmay.app.data.sync.RelojSistema
 import ec.silmay.app.domain.repository.AuditoriaRechazosRepository
 import ec.silmay.app.domain.repository.AuthRepository
+import ec.silmay.app.domain.repository.DespachoRepository
 import ec.silmay.app.domain.repository.DispositivoRepository
 import ec.silmay.app.domain.repository.JornadaRepository
 import ec.silmay.app.domain.repository.RegistroOperativoRepository
@@ -29,6 +31,7 @@ import ec.silmay.app.domain.repository.SincronizacionRepository
 import ec.silmay.app.domain.usecase.CerrarJornadaUseCase
 import ec.silmay.app.domain.usecase.GuardarRegistroOperativoUseCase
 import ec.silmay.app.domain.usecase.IniciarJornadaUseCase
+import ec.silmay.app.domain.usecase.RegistrarDespachoUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -137,4 +140,27 @@ object SyncModule {
     fun provideCerrarJornadaUseCase(
         jornadaRepository: JornadaRepository
     ): CerrarJornadaUseCase = CerrarJornadaUseCase(jornadaRepository)
+
+    @Provides
+    @Singleton
+    fun provideDespachoRepository(
+        firestore: FirebaseFirestore,
+        registroOperativoRepository: RegistroOperativoRepository
+    ): DespachoRepository = DespachoRepositoryImpl(firestore, registroOperativoRepository)
+
+    @Provides
+    @Singleton
+    fun provideRegistrarDespachoUseCase(
+        authRepository: AuthRepository,
+        dispositivoRepository: DispositivoRepository,
+        jornadaRepository: JornadaRepository,
+        despachoRepository: DespachoRepository
+    ): RegistrarDespachoUseCase = RegistrarDespachoUseCase(
+        authRepository = authRepository,
+        dispositivoRepository = dispositivoRepository,
+        jornadaRepository = jornadaRepository,
+        despachoRepository = despachoRepository,
+        generadorUuid = GeneradorUuidV4(),
+        reloj = RelojSistema()
+    )
 }
