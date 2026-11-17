@@ -13,6 +13,7 @@ import ec.silmay.app.BuildConfig
 import ec.silmay.app.data.device.DispositivoRepositoryImpl
 import ec.silmay.app.data.repository.FirestoreRegistroOperativoRepository
 import ec.silmay.app.data.repository.FunctionsAuditoriaRechazosRepository
+import ec.silmay.app.data.repository.JornadaRepositoryImpl
 import ec.silmay.app.data.repository.SincronizacionRepositoryImpl
 import ec.silmay.app.data.sync.BitacoraPendientes
 import ec.silmay.app.data.sync.BitacoraPendientesPreferencias
@@ -22,9 +23,12 @@ import ec.silmay.app.data.sync.RelojSistema
 import ec.silmay.app.domain.repository.AuditoriaRechazosRepository
 import ec.silmay.app.domain.repository.AuthRepository
 import ec.silmay.app.domain.repository.DispositivoRepository
+import ec.silmay.app.domain.repository.JornadaRepository
 import ec.silmay.app.domain.repository.RegistroOperativoRepository
 import ec.silmay.app.domain.repository.SincronizacionRepository
+import ec.silmay.app.domain.usecase.CerrarJornadaUseCase
 import ec.silmay.app.domain.usecase.GuardarRegistroOperativoUseCase
+import ec.silmay.app.domain.usecase.IniciarJornadaUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -106,4 +110,31 @@ object SyncModule {
         generadorUuid = GeneradorUuidV4(),
         reloj = RelojSistema()
     )
+
+    @Provides
+    @Singleton
+    fun provideJornadaRepository(
+        firestore: FirebaseFirestore,
+        registroOperativoRepository: RegistroOperativoRepository
+    ): JornadaRepository = JornadaRepositoryImpl(firestore, registroOperativoRepository)
+
+    @Provides
+    @Singleton
+    fun provideIniciarJornadaUseCase(
+        authRepository: AuthRepository,
+        dispositivoRepository: DispositivoRepository,
+        jornadaRepository: JornadaRepository
+    ): IniciarJornadaUseCase = IniciarJornadaUseCase(
+        authRepository = authRepository,
+        dispositivoRepository = dispositivoRepository,
+        jornadaRepository = jornadaRepository,
+        generadorUuid = GeneradorUuidV4(),
+        reloj = RelojSistema()
+    )
+
+    @Provides
+    @Singleton
+    fun provideCerrarJornadaUseCase(
+        jornadaRepository: JornadaRepository
+    ): CerrarJornadaUseCase = CerrarJornadaUseCase(jornadaRepository)
 }

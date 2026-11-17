@@ -14,6 +14,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import ec.silmay.app.R
+import ec.silmay.app.presentation.jornada.AperturaJornadaScreen
+import ec.silmay.app.presentation.jornada.CierreJornadaScreen
+import ec.silmay.app.presentation.jornada.JornadaViewModel
 import ec.silmay.app.presentation.login.LoginScreen
 import ec.silmay.app.presentation.login.LoginViewModel
 import ec.silmay.app.presentation.menu.MenuPrincipalScreen
@@ -23,6 +27,7 @@ import ec.silmay.app.presentation.sesion.SesionViewModel
 object Rutas {
     const val LOGIN = "login"
     const val MENU = "menu"
+    const val JORNADA = "jornada"
 }
 
 /**
@@ -71,7 +76,27 @@ fun SilmayNavHost(
                     sesion = sesion,
                     alertaPendientes = alertaPendientes,
                     onDescartarAlertaPendientes = sesionViewModel::limpiarAlertaPendientes,
-                    onCerrarSesion = sesionViewModel::cerrarSesion
+                    onCerrarSesion = sesionViewModel::cerrarSesion,
+                    onModuloClick = { moduloId ->
+                        if (moduloId == R.string.menu_modulo_jornada) {
+                            navController.navigate(Rutas.JORNADA)
+                        }
+                    }
+                )
+            }
+        }
+        composable(Rutas.JORNADA) {
+            val jornadaViewModel: JornadaViewModel = hiltViewModel()
+            val jState by jornadaViewModel.uiState.collectAsState()
+            if (jState.jornadaActiva == null) {
+                AperturaJornadaScreen(
+                    viewModel = jornadaViewModel,
+                    onVolver = { navController.popBackStack() }
+                )
+            } else {
+                CierreJornadaScreen(
+                    viewModel = jornadaViewModel,
+                    onVolver = { navController.popBackStack() }
                 )
             }
         }

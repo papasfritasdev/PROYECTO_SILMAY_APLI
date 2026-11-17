@@ -36,4 +36,26 @@
     <string name="alerta_pendientes_titulo">Registros pendientes de sincronización</string>
     <string name="alerta_pendientes_mensaje">Tiene %1$d registro(s) pendiente(s) de subir a la nube. Conéctese a Internet para enviarlos antes de cerrar sesión y evitar la pérdida de datos.</string>
     <string name="alerta_pendientes_boton">Entendido</string>
+
+    <!-- Módulo Jornada de Maquinaria (HU-04) -->
+    <string name="jornada_titulo_apertura">Apertura de Jornada</string>
+    <string name="jornada_titulo_cierre">Cierre de Jornada</string>
+    <string name="jornada_maquina">Maquinaria</string>
+    <string name="jornada_lugar">Frente / Lugar</string>
+    <string name="jornada_horometro_inicial">Horómetro Inicial</string>
+    <string name="jornada_horometro_final">Horómetro Final</string>
+    <string name="jornada_hora_inicio">Hora de Inicio</string>
+    <string name="jornada_hora_salida">Hora de Salida</string>
+    <string name="jornada_observaciones">Observaciones</string>
+    <string name="jornada_btn_iniciar">Iniciar Jornada</string>
+    <string name="jornada_btn_cerrar">Cerrar y Sellar Jornada</string>
+    <string name="jornada_deducciones_titulo">Tiempos Improductivos / Novedades</string>
+    <string name="jornada_btn_agregar_deduccion">Agregar Deducción / Falla</string>
+    <string name="jornada_motivo">Motivo</string>
+    <string name="jornada_duracion_horas">Duración (Horas)</string>
+    <string name="jornada_es_falla">¿Es avería o falla mecánica?</string>
+    <string name="jornada_severidad">Severidad</string>
+    <string name="jornada_descripcion_falla">Descripción detallada (mínimo 10 caracteres)</string>
+    <string name="jornada_volver">Volver al Menú</string>
+    <string name="jornada_guardado_exitoso">Jornada procesada y guardada en disco</string>
 </resources>

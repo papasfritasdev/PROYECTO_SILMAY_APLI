@@ -52,7 +52,8 @@ fun MenuPrincipalScreen(
     onCerrarSesion: () -> Unit,
     modifier: Modifier = Modifier,
     alertaPendientes: Int? = null,
-    onDescartarAlertaPendientes: () -> Unit = {}
+    onDescartarAlertaPendientes: () -> Unit = {},
+    onModuloClick: (Int) -> Unit = {}
 ) {
     if (alertaPendientes != null) {
         AlertDialog(
@@ -95,20 +96,26 @@ fun MenuPrincipalScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             modulosPorRol(sesion.rol).forEach { modulo ->
+                val esHabilitado = modulo == R.string.menu_modulo_jornada
                 Card(
+                    onClick = { if (esHabilitado) onModuloClick(modulo) },
+                    enabled = esHabilitado,
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        containerColor = if (esHabilitado) MaterialTheme.colorScheme.surfaceVariant
+                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
                     ),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
                             text = stringResource(modulo),
-                            style = MaterialTheme.typography.titleSmall
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = if (esHabilitado) FontWeight.Bold else FontWeight.Normal
                         )
                         Text(
-                            text = stringResource(R.string.menu_modulo_proximamente),
+                            text = if (esHabilitado) "Toca para abrir captura de turno"
+                            else stringResource(R.string.menu_modulo_proximamente),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
