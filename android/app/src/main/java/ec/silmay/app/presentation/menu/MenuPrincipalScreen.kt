@@ -11,12 +11,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -48,8 +50,27 @@ private fun tituloPorRol(rol: Rol): Int = when (rol) {
 fun MenuPrincipalScreen(
     sesion: UsuarioSesion,
     onCerrarSesion: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    alertaPendientes: Int? = null,
+    onDescartarAlertaPendientes: () -> Unit = {}
 ) {
+    if (alertaPendientes != null) {
+        AlertDialog(
+            onDismissRequest = onDescartarAlertaPendientes,
+            title = {
+                Text(text = stringResource(R.string.alerta_pendientes_titulo))
+            },
+            text = {
+                Text(text = stringResource(R.string.alerta_pendientes_mensaje, alertaPendientes))
+            },
+            confirmButton = {
+                TextButton(onClick = onDescartarAlertaPendientes) {
+                    Text(text = stringResource(R.string.alerta_pendientes_boton))
+                }
+            }
+        )
+    }
+
     Scaffold(modifier = modifier.fillMaxSize()) { innerPadding ->
         Column(
             modifier = Modifier

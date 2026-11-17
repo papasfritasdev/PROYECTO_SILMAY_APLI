@@ -13,6 +13,7 @@ import ec.silmay.app.BuildConfig
 import ec.silmay.app.data.device.DispositivoRepositoryImpl
 import ec.silmay.app.data.repository.FirestoreRegistroOperativoRepository
 import ec.silmay.app.data.repository.FunctionsAuditoriaRechazosRepository
+import ec.silmay.app.data.repository.SincronizacionRepositoryImpl
 import ec.silmay.app.data.sync.BitacoraPendientes
 import ec.silmay.app.data.sync.BitacoraPendientesPreferencias
 import ec.silmay.app.data.sync.ConciliadorSincronizacion
@@ -22,6 +23,7 @@ import ec.silmay.app.domain.repository.AuditoriaRechazosRepository
 import ec.silmay.app.domain.repository.AuthRepository
 import ec.silmay.app.domain.repository.DispositivoRepository
 import ec.silmay.app.domain.repository.RegistroOperativoRepository
+import ec.silmay.app.domain.repository.SincronizacionRepository
 import ec.silmay.app.domain.usecase.GuardarRegistroOperativoUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -58,6 +60,11 @@ object SyncModule {
     @Singleton
     fun provideBitacoraPendientes(@ApplicationContext context: Context): BitacoraPendientes =
         BitacoraPendientesPreferencias(context.getSharedPreferences(PREFS_SYNC, Context.MODE_PRIVATE))
+
+    @Provides
+    @Singleton
+    fun provideSincronizacionRepository(bitacora: BitacoraPendientes): SincronizacionRepository =
+        SincronizacionRepositoryImpl(bitacora)
 
     @Provides
     @Singleton

@@ -1,8 +1,8 @@
 package ec.silmay.app.presentation.sesion
 
-import ec.silmay.app.domain.model.AppResult
 import ec.silmay.app.domain.model.Rol
 import ec.silmay.app.domain.model.UsuarioSesion
+import ec.silmay.app.domain.usecase.CerrarSesionResultado
 import ec.silmay.app.domain.usecase.CerrarSesionUseCase
 import ec.silmay.app.domain.usecase.ObtenerSesionActualUseCase
 import io.mockk.coEvery
@@ -40,7 +40,7 @@ class SesionViewModelTest {
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
-        coEvery { cerrarSesion() } returns AppResult.Success(Unit)
+        coEvery { cerrarSesion() } returns CerrarSesionResultado.Exito
     }
 
     @After
@@ -79,7 +79,7 @@ class SesionViewModelTest {
     }
 
     @Test
-    fun `cerrar sesion invoca el caso de uso y vuelve a SinSesion`() = runTest {
+    fun `cerrar sesion exitoso invoca el caso de uso y vuelve a SinSesion`() = runTest {
         coEvery { obtenerSesion() } returns sesion
         val viewModel = SesionViewModel(obtenerSesion, cerrarSesion)
         advanceUntilIdle()
@@ -89,5 +89,24 @@ class SesionViewModelTest {
 
         assertEquals(SesionUiState.SinSesion, viewModel.uiState.value)
         coVerify(exactly = 1) { cerrarSesion() }
+    }
+
+    @Test
+    fun `HU-07 CA3 - cuando hay registros pendientes bloquea el cierre y emite alerta`() = runTest {
+        coEvery { obtenerSesion() } returns sesion
+        coEvery { cerrarSesion() } returns CerrarSesionResultado.BloqueadoPorPendientes(2)
+        val viewModel = SesionViewModel(obtenerSesion, cerrarSesion)
+        advanceUntilIdle()
+
+        viewModel.cerrarSesion()
+        advanceUntilIdle()
+
+        // La sesión no debe borrarse, debe mantenerse Autenticada
+        assertEquals(SesionUiState.Autenticada(sesion), viewModel.uiState.value)
+        assertEquals(2, viewModel.alertaPendientes.value)
+
+        // Limpiar la alerta la devuelve a null
+        viewModel.limpiarAlertaPendientes()
+        assertEquals(null, viewModel.alertaPendientes.value)
     }
 }

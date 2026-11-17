@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ec.silmay.app.domain.model.UsuarioSesion
+import ec.silmay.app.domain.usecase.CerrarSesionResultado
 import ec.silmay.app.domain.usecase.CerrarSesionUseCase
 import ec.silmay.app.domain.usecase.ObtenerSesionActualUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +34,13 @@ class SesionViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<SesionUiState>(SesionUiState.Verificando)
     val uiState: StateFlow<SesionUiState> = _uiState.asStateFlow()
 
+    private val _alertaPendientes = MutableStateFlow<Int?>(null)
+    val alertaPendientes: StateFlow<Int?> = _alertaPendientes.asStateFlow()
+
+    fun limpiarAlertaPendientes() {
+        _alertaPendientes.value = null
+    }
+
     init {
         viewModelScope.launch {
             _uiState.value = obtenerSesionActual()
@@ -47,8 +55,17 @@ class SesionViewModel @Inject constructor(
 
     fun cerrarSesion() {
         viewModelScope.launch {
-            cerrarSesionUseCase()
-            _uiState.value = SesionUiState.SinSesion
+            when (val resultado = cerrarSesionUseCase()) {
+                is CerrarSesionResultado.Exito -> {
+                    _uiState.value = SesionUiState.SinSesion
+                }
+                is CerrarSesionResultado.BloqueadoPorPendientes -> {
+                    _alertaPendientes.value = resultado.cantidadPendientes
+                }
+                is CerrarSesionResultado.Error -> {
+                    // Si ocurre un error inesperado, no alteramos la sesión local para proteger al usuario.
+                }
+            }
         }
     }
 }

@@ -10,7 +10,10 @@ import dagger.hilt.components.SingletonComponent
 import ec.silmay.app.BuildConfig
 import ec.silmay.app.data.firestore.FirestoreProvider
 import ec.silmay.app.data.repository.AuthRepositoryImpl
+import ec.silmay.app.data.repository.CatalogoRepositoryImpl
 import ec.silmay.app.domain.repository.AuthRepository
+import ec.silmay.app.domain.repository.CatalogoRepository
+import ec.silmay.app.domain.repository.SincronizacionRepository
 import ec.silmay.app.domain.usecase.CerrarSesionUseCase
 import ec.silmay.app.domain.usecase.IniciarSesionUseCase
 import ec.silmay.app.domain.usecase.ObtenerSesionActualUseCase
@@ -58,8 +61,11 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideCerrarSesionUseCase(authRepository: AuthRepository): CerrarSesionUseCase {
-        return CerrarSesionUseCase(authRepository)
+    fun provideCerrarSesionUseCase(
+        authRepository: AuthRepository,
+        sincronizacionRepository: SincronizacionRepository
+    ): CerrarSesionUseCase {
+        return CerrarSesionUseCase(authRepository, sincronizacionRepository)
     }
 }
 
@@ -72,4 +78,10 @@ abstract class RepositoryModule {
     abstract fun bindAuthRepository(
         authRepositoryImpl: AuthRepositoryImpl
     ): AuthRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindCatalogoRepository(
+        catalogoRepositoryImpl: CatalogoRepositoryImpl
+    ): CatalogoRepository
 }

@@ -65,9 +65,12 @@ fun SilmayNavHost(
         }
         composable(Rutas.MENU) {
             val sesion = (estado as? SesionUiState.Autenticada)?.sesion
+            val alertaPendientes by sesionViewModel.alertaPendientes.collectAsState()
             if (sesion != null) {
                 MenuPrincipalScreen(
                     sesion = sesion,
+                    alertaPendientes = alertaPendientes,
+                    onDescartarAlertaPendientes = sesionViewModel::limpiarAlertaPendientes,
                     onCerrarSesion = sesionViewModel::cerrarSesion
                 )
             }

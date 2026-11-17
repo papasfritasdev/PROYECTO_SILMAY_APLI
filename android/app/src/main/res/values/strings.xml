@@ -31,4 +31,9 @@
     <string name="menu_modulo_registros_zona">Registros de la zona</string>
     <string name="menu_modulo_proximamente">Disponible en próximos sprints</string>
     <string name="menu_cerrar_sesion">Cerrar sesión</string>
+
+    <!-- Alerta de protección de cierre de sesión (HU-07 CA3 / RF-04) -->
+    <string name="alerta_pendientes_titulo">Registros pendientes de sincronización</string>
+    <string name="alerta_pendientes_mensaje">Tiene %1$d registro(s) pendiente(s) de subir a la nube. Conéctese a Internet para enviarlos antes de cerrar sesión y evitar la pérdida de datos.</string>
+    <string name="alerta_pendientes_boton">Entendido</string>
 </resources>
