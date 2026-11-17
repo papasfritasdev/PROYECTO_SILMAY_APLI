@@ -18,6 +18,7 @@ mockk = "1.13.13"
 turbine = "1.2.0"
 hilt = "2.59.2"
 googleServices = "4.4.2"
+kover = "0.8.3"
 
 ksp = "2.0.21-1.0.28"
 
@@ -68,3 +69,4 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
