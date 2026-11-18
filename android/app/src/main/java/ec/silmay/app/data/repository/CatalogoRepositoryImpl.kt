@@ -30,7 +30,12 @@ class CatalogoRepositoryImpl @Inject constructor(
         val query = if (soloActivos) coleccion.whereEqualTo("activo", true) else coleccion
 
         val snapshot = try {
-            query.get(Source.CACHE).await()
+            val cacheSnapshot = query.get(Source.CACHE).await()
+            if (cacheSnapshot.documents.isEmpty()) {
+                query.get(Source.DEFAULT).await()
+            } else {
+                cacheSnapshot
+            }
         } catch (_: Exception) {
             query.get(Source.DEFAULT).await()
         }
@@ -58,7 +63,12 @@ class CatalogoRepositoryImpl @Inject constructor(
         val query = if (soloOperativas) coleccion.whereEqualTo("estado", "operativa") else coleccion
 
         val snapshot = try {
-            query.get(Source.CACHE).await()
+            val cacheSnapshot = query.get(Source.CACHE).await()
+            if (cacheSnapshot.documents.isEmpty()) {
+                query.get(Source.DEFAULT).await()
+            } else {
+                cacheSnapshot
+            }
         } catch (_: Exception) {
             query.get(Source.DEFAULT).await()
         }
