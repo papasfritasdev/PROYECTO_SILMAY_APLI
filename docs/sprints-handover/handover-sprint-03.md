@@ -1,7 +1,7 @@
 # Informe de Relevo Técnico — Sprint 3: Captura en Campo Offline-First (Jornadas, Despachos y Sincronización Diferida)
 
 - **Fecha de Cierre:** 17/11/2026
-- **Desarrollador Responsable:** Alejandro (`AlejandroR9AlphaCore`)
+- **Desarrollador Responsable:** Bryan (`papasfritasdev`)
 - **Asistente IA Utilizado:** Google Antigravity
 - **Puntos de Historia Completados:** 26 / 26 Pts (HU-07 [5 pts], HU-04 [5 pts], HU-03 [8 pts], HU-08 [8 pts]) + Saneamiento de CI y Kover (Fase 0)
 
@@ -135,8 +135,8 @@
 
 ## 6. Protocolo de Relevo Humano (Walkthrough)
 
-1. El desarrollador saliente realiza el merge formal de `feature/sp3-captura-offline` a `develop` una vez verificado el pipeline de CI.
-2. El desarrollador entrante:
+1. El desarrollador saliente (Bryan) realiza el merge formal de `feature/sp3-captura-offline` a `develop` una vez verificado el pipeline de CI.
+2. El desarrollador entrante (Alejandro):
    - Ejecuta `git pull origin develop`.
    - Ejecuta la suite de pruebas unitarias en Android: `cd android; .\gradlew testDebugUnitTest koverVerify`.
    - Verifica la ejecución limpia de pruebas en Web y Functions: `cd web; npm test` y `cd firebase/functions; npm test`.
