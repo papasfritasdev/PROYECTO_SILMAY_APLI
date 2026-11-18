@@ -147,4 +147,22 @@ class CalculadoraJornadaTest {
         assertTrue(resultado is AppResult.Success)
         assertTrue((resultado as AppResult.Success).data.tieneFallaCritica)
     }
+
+    @Test
+    fun `cierre inmediato sin deducciones asigna minimo 0_1 horas y no dispara MSG_12`() {
+        val resultado = CalculadoraJornada.calcularCierre(
+            horaInicioMillis = horaInicio,
+            horaSalidaMillis = horaInicio + 15_000L, // Solo 15 segundos después
+            horometroInicial = 2100.0,
+            horometroFinal = 2101.0,
+            deducciones = emptyList()
+        )
+
+        assertTrue(resultado is AppResult.Success)
+        val data = (resultado as AppResult.Success).data
+        assertEquals(0.1, data.horasBrutas, 0.01)
+        assertEquals(0.0, data.horasRestadas, 0.01)
+        assertEquals(0.1, data.horasEfectivas, 0.01)
+        assertEquals(1.0, data.deltaHorometro, 0.01)
+    }
 }

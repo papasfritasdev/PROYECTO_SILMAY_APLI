@@ -189,11 +189,14 @@ class JornadaViewModel @Inject constructor(
                 return@launch
             }
 
+            val ahora = System.currentTimeMillis()
+            val horaSalida = if (ahora > jornada.horaInicioMillis) ahora else (jornada.horaInicioMillis + 1000L)
+
             _uiState.update { it.copy(cargando = true, errorMensaje = null) }
             val resultado = cerrarJornadaUseCase(
                 CerrarJornadaParams(
                     jornadaUuid = jornada.uuid,
-                    horaSalidaMillis = state.horaSalidaMillis,
+                    horaSalidaMillis = horaSalida,
                     horometroFinal = horometro,
                     observaciones = state.observaciones,
                     deducciones = state.deducciones

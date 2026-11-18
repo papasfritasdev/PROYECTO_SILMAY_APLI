@@ -26,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -207,6 +208,19 @@ fun AperturaJornadaScreen(
             ) {
                 Text(
                     text = stringResource(R.string.jornada_btn_iniciar),
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
+
+            OutlinedButton(
+                onClick = onVolver,
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+            ) {
+                Text(
+                    text = "Cancelar",
                     style = MaterialTheme.typography.titleMedium
                 )
             }

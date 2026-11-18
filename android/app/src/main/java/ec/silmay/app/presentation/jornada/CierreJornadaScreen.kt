@@ -2,6 +2,7 @@ package ec.silmay.app.presentation.jornada
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -195,13 +196,21 @@ fun CierreJornadaScreen(
                 Text(
                     text = stringResource(R.string.jornada_deducciones_titulo),
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 12.dp)
                 )
                 OutlinedButton(
                     onClick = { mostrarDialogoDeduccion = true },
-                    shape = RoundedCornerShape(8.dp)
+                    shape = RoundedCornerShape(8.dp),
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
                 ) {
-                    Text("+ Deducción")
+                    Text(
+                        text = "+ Deducción",
+                        maxLines = 1,
+                        style = MaterialTheme.typography.labelLarge
+                    )
                 }
             }
 

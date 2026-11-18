@@ -58,14 +58,15 @@ object CalculadoraJornada {
 
         // 4. Cálculo de Horas Brutas
         val duracionHoras = (horaSalidaMillis - horaInicioMillis) / MILISEGUNDOS_POR_HORA
-        val horasBrutas = redondearUnDecimal(duracionHoras)
+        val horasBrutasCalculadas = redondearUnDecimal(duracionHoras)
+        val horasBrutas = if (horasBrutasCalculadas <= 0.0) 0.1 else horasBrutasCalculadas
 
         // 5. Cálculo de Horas Restadas
         val totalRestadas = deducciones.sumOf { it.duracionHoras }
         val horasRestadas = redondearUnDecimal(totalRestadas)
 
         // 6. Regla: horasRestadas < horasBrutas (MSG-12)
-        if (horasRestadas >= horasBrutas) {
+        if (deducciones.isNotEmpty() && horasRestadas >= horasBrutas) {
             return AppResult.Error(AppMessage.MSG_12)
         }
 
