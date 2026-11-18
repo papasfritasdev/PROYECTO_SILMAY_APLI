@@ -39,7 +39,7 @@
   - `model/MetodoCobro.kt`: `EFECTIVO`, `CREDITO`, `TRANSFERENCIA`.
   - `model/EstadoValidacion.kt`: `PENDIENTE`, `APROBADO`, `RECHAZADO`.
 - **Motor Matemático:**
-  - `usecase/CalculadoraJornada.kt`: Implementación canónica de fórmulas oficiales de `docs/business-formulas.md` ($H_{brutas}$, $\Delta H$, $H_{efectivas}$, validaciones de horas, horómetros y deducciones).
+  - `usecase/CalculadoraJornada.kt`: Implementación canónica de fórmulas oficiales de `docs/business-formulas.md` ($H_{brutas}$, $\Delta H$, $H_{efectivas}$, validaciones de horas, horómetros y deducciones). Incluye piso de $0.1$ h para jornadas de demostración/prueba cerradas inmediatamente y evaluación estricta de `MSG-12` condicionada a la existencia de deducciones registradas.
 - **Contratos de Repositorio:**
   - `repository/CatalogoRepository.kt`: Lectura offline de catálogos y maquinaria.
   - `repository/SincronizacionRepository.kt`: Contrato para conteo y observación reactiva de registros pendientes.
@@ -53,7 +53,7 @@
   - `usecase/RegistrarDespachoUseCase.kt`: Validación de cantidades/montos (`MSG-07`), herencia de frente de extracción activo y guardado local.
 
 ### 2.3 Capa Datos Android (`android/app/src/main/java/ec/silmay/app/data/`)
-- `repository/CatalogoRepositoryImpl.kt`: Consulta Offline-First sobre Cloud Firestore con fallback a caché local (`Source.CACHE`) y mapeo a entidades puras.
+- `repository/CatalogoRepositoryImpl.kt`: Consulta Offline-First sobre Cloud Firestore con lectura inicial de caché local (`Source.CACHE`) y fallback automático a servidor/emulador (`Source.DEFAULT`) si la base local SQLite está vacía en el primer arranque.
 - `repository/SincronizacionRepositoryImpl.kt`: Implementación sobre `BitacoraPendientes` con `contarPendientes()` y `observarPendientes(): Flow<Int>`.
 - `repository/JornadaRepositoryImpl.kt`: Coordinación con `RegistroOperativoRepository` para almacenamiento en colección `jornadas` con `.document(uuid).set(...)`.
 - `repository/DespachoRepositoryImpl.kt`: Coordinación con `RegistroOperativoRepository` para almacenamiento en colección `despachos`.
@@ -65,8 +65,8 @@
 - `sesion/SesionViewModel.kt`: Expone reactivamente `esOnline`, `pendientesSync` e intercepta el cierre de sesión mediante `CerrarSesionUseCase`.
 - `menu/MenuPrincipalScreen.kt`: Badges visuales de conectividad (`En línea` / `Sin conexión`) y estado de sincronización (`✓ Todo sincronizado` / `⏳ X pendiente(s)`), además de diálogo bloqueante `AlertDialog` ante cierre de sesión con pendientes.
 - `jornada/JornadaViewModel.kt`: Manejo de estado de apertura y cierre de jornada, cálculo en vivo y feedback visual.
-- `jornada/AperturaJornadaScreen.kt`: Pantalla de inicio de jornada con selección de máquina, lugar, hora y horómetro sugerido.
-- `jornada/CierreJornadaScreen.kt`: Pantalla de cierre con desglose de deducciones, validaciones en tiempo real y bloqueo tras cierre.
+- `jornada/AperturaJornadaScreen.kt`: Pantalla de inicio de jornada con selección de máquina, lugar, hora, horómetro sugerido y botón secundario "Cancelar" para abortar el turno sin persistencia.
+- `jornada/CierreJornadaScreen.kt`: Pantalla de cierre con desglose de deducciones, captura precisa de hora de salida al pulsar el botón, distribución flexible de ancho para evitar deformación del botón "+ Deducción", validaciones en tiempo real y bloqueo tras cierre.
 - `despacho/DespachoViewModel.kt`: Manejo de estado del formulario de despacho, validaciones y feedback háptico.
 - `despacho/DespachoScreen.kt`: Pantalla de captura rápida de despachos con soporte para feedback háptico (`LocalHapticFeedback`).
 - `navigation/SilmayNavHost.kt`: Rutas de navegación integradas (`apertura_jornada`, `cierre_jornada`, `despacho`) y cableado con `MenuPrincipalScreen`.
@@ -105,10 +105,10 @@
 
 | Módulo / Suite | Comando | Pruebas Exitosas | Fallos | Cobertura Dominio |
 | :--- | :--- | :--- | :--- | :--- |
-| **Android Unit Tests + Kover** | `cd android; .\gradlew testDebugUnitTest koverVerify` | **133 / 133** | 0 | $\ge 70\%$ (Aprobado) |
+| **Android Unit Tests + Kover** | `cd android; .\gradlew testDebugUnitTest koverVerify` | **134 / 134** | 0 | $\ge 70\%$ (Aprobado) |
 | **Firebase Functions** | `cd firebase/functions; npm test` | **35 / 35** | 0 | N/A |
 | **Web Platform (Vitest)** | `cd web; npm test` | **110 / 110** | 0 | **100%** |
-| **Total General Monorepo** | | **278 / 278** | **0** | **100% Verde** |
+| **Total General Monorepo** | | **279 / 279** | **0** | **100% Verde** |
 
 ---
 
@@ -127,6 +127,9 @@
 - **Bitácora de Pendientes en Pruebas Unitarias:** Al probar componentes reactivos (`Flow` / corrutinas) que observan `NetworkMonitor` o `BitacoraPendientes`, asegurarse de inicializar los emisores con `replay = 1` o correr sobre `backgroundScope` para evitar pérdida de emisiones antes de que el collector esté suscrito.
 - **Compose Material 3 Deprecations:** Evitar usar `Modifier.menuAnchor()` sin argumentos en Compose M3 1.3+; utilizar `Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable)`.
 - **Validación de Formatos en Emuladores:** El SDK de Functions en Android requiere que la clave en `google-services.json` cumpla con el formato sintáctico (`AIza` seguido de 35 caracteres alfanuméricos) incluso al comunicarse contra los emuladores locales (`10.0.2.2`).
+- **Comportamiento de Caché Inicial de Firestore en SQLite:** Al consultar `Source.CACHE` en un dispositivo o emulador recién instalado, Firestore devuelve un `QuerySnapshot` con `size = 0` (no arroja excepción). Por ello, `CatalogoRepositoryImpl` valida si `cacheSnapshot.documents.isEmpty()` para invocar `Source.DEFAULT` y poblar la base local.
+- **Tolerancia para Pruebas Rápidas de Jornadas (Demos):** Al abrir y cerrar un turno en lapsos de segundos (< 3 min), el redondeo a 1 decimal calcula $0.0$ h brutas. Se estableció una cota mínima de $0.1$ h (mínima unidad de reporte minero) y se condicionó `MSG-12` a `deducciones.isNotEmpty()` para evitar falsos positivos al validar $H_{restadas} \ge H_{brutas}$.
+- **Imposibilidad Legal de Borrado en Auditoría Minera:** Por reglas de seguridad y auditoría minera (`firestore.rules` con `allow delete: if false`), las jornadas y despachos no se pueden eliminar de la base de datos. Los turnos abiertos por error en producción deben cerrarse inmediatamente con la observación "Iniciada por error", o bien descartarse antes de guardar usando el botón "Cancelar".
 
 ---
 
